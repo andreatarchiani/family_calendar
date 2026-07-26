@@ -1,0 +1,130 @@
+<mat-card class="event-card" [class.past]="past" [class.highlight]="highlight" (click)="edit.emit(event.id)"
+    [style.border-left]="'6px solid ' + (event.author?.color || '#ccc')">
+
+
+    <div class="card-header">
+
+
+        <div class="title-area">
+
+
+            @if(highlight) {
+
+            <div class="next-badge">
+                Prossimo evento
+            </div>
+
+            }
+
+
+            <mat-card-title>
+                {{ event.title }}
+            </mat-card-title>
+
+
+        </div>
+
+
+
+        @if(event.authorId === currentUserId) {
+
+        <button class="delete-button" mat-icon-button color="warn"
+            (click)="$event.stopPropagation(); delete.emit(event.id)">
+
+            <mat-icon>
+                delete
+            </mat-icon>
+
+        </button>
+
+        }
+
+
+    </div>
+
+
+
+    <mat-card-content>
+
+
+        <div class="event-main">
+
+
+            <div class="date-box">
+
+
+                <div class="day">
+                    {{ getDay(event.date) }}
+                </div>
+
+
+                <div class="month">
+                    {{ getMonth(event.date) }}
+                </div>
+
+
+            </div>
+
+
+
+            <div class="event-info">
+
+
+                @if(isToday()) {
+
+                <span class="today-badge">
+                    Oggi
+                </span>
+
+                }
+
+
+
+                <p class="time">
+                    <span>
+                        🕒 {{ event.startTime }}
+                    </span>
+                </p>
+
+
+
+                @if(event.location) {
+
+                <p>
+                    📍 {{ event.location }}
+                </p>
+
+                }
+
+
+                @if(event.notes) {
+
+                <p>
+                    📝 {{ event.notes }}
+                </p>
+
+                }
+
+
+            </div>
+
+
+        </div>
+
+
+
+        @if(event.author) {
+
+        <div class="author">
+
+            {{ event.author.name }}
+
+        </div>
+
+        }
+
+
+    </mat-card-content>
+
+
+</mat-card>

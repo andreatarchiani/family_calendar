@@ -1,1 +1,421 @@
-<p>calendar works!</p>
+<div class="calendar-container">
+
+
+    <!-- CAMBIO VISTA -->
+
+    <div class="view-buttons">
+
+        <button mat-button [class.active]="viewMode === 'calendar'" (click)="setView('calendar')">
+
+            Calendario
+
+        </button>
+
+
+        <button mat-button [class.active]="viewMode === 'agenda'" (click)="setView('agenda')">
+
+            Agenda
+
+        </button>
+
+    </div>
+
+    <!-- AGENDA -->
+
+    @if(viewMode === 'agenda') {
+
+
+    <!-- FILTRO UTENTI -->
+
+    <div class="filters">
+
+        @for(user of users; track user.uid) {
+
+        <button class="user-filter" [class.active]="selectedUsers.includes(user.uid)"
+            [style.background]="selectedUsers.includes(user.uid) ? user.color : '#f5f5f5'"
+            (click)="toggleUser(user.uid)">
+
+            <span class="filter-dot" [style.background]="user.color">
+            </span>
+
+            {{user.name}}
+
+        </button>
+
+        }
+
+    </div>
+
+
+
+    <div class="agenda">
+
+
+        @for(event of getAgendaEvents(); track event.id) {
+
+
+        <div class="agenda-event" (click)="openEvent(event.id)">
+
+
+            <span class="event-dot" [style.background-color]="event.author?.color || '#ccc'">
+            </span>
+
+
+            <div class="agenda-content">
+
+
+                <strong>
+                    {{ event.title }}
+                </strong>
+
+
+                <span>
+                    📅 {{ event.date }}
+                </span>
+
+
+                <span>
+                    🕒 <small>
+                        {{ event.startTime }}
+                    </small>
+                </span>
+
+
+                @if(event.location) {
+
+                <span>
+                    📍 {{ event.location }}
+                </span>
+
+                }
+
+
+            </div>
+
+
+        </div>
+
+
+        }
+
+
+    </div>
+
+
+    }
+
+
+
+
+
+    <!-- CALENDARIO -->
+
+    @if(viewMode === 'calendar') {
+
+
+    <div class="calendar-header">
+
+
+        <button mat-icon-button (click)="previousMonth()">
+
+            <mat-icon>
+                chevron_left
+            </mat-icon>
+
+        </button>
+
+
+
+        <h2>
+            {{ monthName }}
+        </h2>
+
+
+
+
+        <button mat-icon-button (click)="nextMonth()">
+
+            <mat-icon>
+                chevron_right
+            </mat-icon>
+
+        </button>
+
+
+    </div>
+
+
+
+
+
+    <div class="week-days">
+
+        @for(day of weekDays; track day) {
+
+        <div class="week-day">
+            {{ day }}
+        </div>
+
+        }
+
+    </div>
+
+
+
+
+
+    <div class="calendar-grid">
+
+
+        @for(day of days; track $index) {
+
+
+        @if(day) {
+
+
+        <div class="calendar-day" [class.today]="isToday(day)" (click)="selectDay(day)">
+
+
+
+            <span class="day-number" [class.has-events]="getEventsForDay(day).length > 0">
+
+                {{ day.getDate() }}
+
+            </span>
+
+
+
+            @if(isToday(day)) {
+
+            <small class="today-label">
+                Oggi
+            </small>
+
+            }
+
+
+        </div>
+
+
+
+        }
+        @else {
+
+
+        <div class="calendar-day empty"></div>
+
+
+        }
+
+
+        }
+
+
+    </div>
+
+
+
+
+
+
+    <!-- GIORNO SELEZIONATO -->
+
+    @if(selectedDay) {
+
+    <section #selectedDaySection class="selected-day-card">
+
+        <div class="selected-day-header">
+
+
+            <div>
+
+                <h3>
+                    {{ selectedDayTitle }}
+                </h3>
+
+
+                <span>
+                    Eventi programmati
+                </span>
+
+
+            </div>
+
+
+
+            <button mat-icon-button (click)="selectedDay = null">
+
+                <mat-icon>
+                    close
+                </mat-icon>
+
+            </button>
+
+
+        </div>
+
+
+
+
+
+        <div class="selected-events">
+
+
+
+            @if(getEventsForDay(selectedDay).length > 0) {
+
+
+
+            @for(event of getEventsForDay(selectedDay); track event.id) {
+
+
+
+            <div class="selected-event" (click)="openEvent(event.id)">
+
+
+
+                <span class="event-dot" [style.background-color]="event.author?.color || '#ccc'">
+                </span>
+
+
+
+
+                <div class="selected-event-content">
+
+
+                    <strong>
+                        {{ event.title }}
+                    </strong>
+
+
+                    <span>
+                        🕒 {{ event.startTime }}
+                    </span>
+
+
+                </div>
+
+
+            </div>
+
+
+
+            }
+
+
+
+            }
+            @else {
+
+
+            <p class="empty-selected">
+
+                Nessun evento programmato
+
+            </p>
+
+
+            }
+
+
+
+        </div>
+
+
+        <button mat-flat-button color="primary" class="create-day-event" (click)="createEventFromSelectedDay()">
+
+            <mat-icon>
+                add
+            </mat-icon>
+
+            Crea evento
+
+        </button>
+    </section>
+    }
+    }
+
+
+
+
+    <!-- AGENDA -->
+
+    @if(viewMode === 'agenda') {
+
+
+    <div class="agenda">
+
+
+        @for(event of getAgendaEvents(); track event.id) {
+
+
+
+        <div class="agenda-event" (click)="openEvent(event.id)">
+
+
+
+            <span class="event-dot" [style.background-color]="event.author?.color || '#ccc'">
+            </span>
+
+
+
+
+            <div class="agenda-content">
+
+
+                <strong>
+                    {{ event.title }}
+                </strong>
+
+
+
+                <span>
+                    📅 {{ event.date }}
+                </span>
+
+
+
+                <span>
+                    🕒 {{ event.startTime }}
+                </span>
+
+
+
+
+                @if(event.location) {
+
+                <span>
+                    📍 {{ event.location }}
+                </span>
+
+                }
+
+
+            </div>
+
+
+        </div>
+
+
+
+        }
+
+
+
+
+        @if(getAgendaEvents().length === 0) {
+
+
+        <p>
+            Nessun evento futuro
+        </p>
+
+
+        }
+
+
+    </div>
+
+    }
+
+</div>

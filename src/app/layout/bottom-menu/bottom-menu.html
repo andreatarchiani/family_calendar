@@ -1,15 +1,48 @@
-<nav>
+<nav class="bottom-nav">
 
-    <a routerLink="/home">
-        🏠 Home
+    <a routerLink="/home" routerLinkActive="active">
+
+        <mat-icon>
+            home
+        </mat-icon>
+
+        <span>
+            Home
+        </span>
+
     </a>
 
-    <a routerLink="/calendar">
-        📅 Calendario
+
+
+    <a routerLink="/calendar" routerLinkActive="active">
+
+        <mat-icon>
+            calendar_month
+        </mat-icon>
+
+        <span>
+            Calendario
+        </span>
+
     </a>
 
-    <a routerLink="/events">
-        ➕ Eventi
+
+
+    <a routerLink="/events" routerLinkActive="active">
+
+        <mat-icon>
+            add_circle
+        </mat-icon>
+
+        <span>
+            Evento
+        </span>
+
+    </a>
+
+    <a routerLink="/friends" routerLinkActive="active">
+        <mat-icon>group</mat-icon>
+        <span>Amici</span>
     </a>
 
 </nav>

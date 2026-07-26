@@ -1,1 +1,155 @@
-<p>home works!</p>
+<div class="home-container">
+
+
+    <div class="home-header">
+
+        <h1>Ciao!</h1>
+
+        <p>
+            Organizza gli impegni della famiglia
+        </p>
+
+    </div>
+
+
+
+    @if(nextEvent$ | async; as nextEvent) {
+
+    <section class="next-event">
+
+        <h2 class="section-title">
+            Prossimo evento
+        </h2>
+
+
+        <app-event-card [event]="nextEvent" [highlight]="true" [currentUserId]="currentUser.currentUser?.uid"
+            (edit)="editEvent($event)" (delete)="deleteEvent($event)">
+        </app-event-card>
+
+
+    </section>
+
+    }
+
+
+
+    <section class="future-events">
+
+
+        @if(futureEventGroups$ | async; as groups) {
+
+
+        @if(groups.length > 0) {
+
+
+        @for(group of groups; track group.title) {
+
+
+        <h2 class="group-title">
+            {{ group.title }}
+        </h2>
+
+
+
+        @for(event of group.events; track event.id) {
+
+
+        <app-event-card [event]="event" [currentUserId]="currentUser.currentUser?.uid" (edit)="editEvent($event)"
+            (delete)="deleteEvent($event)">
+        </app-event-card>
+
+
+        }
+
+
+        }
+
+
+        } @else {
+
+
+        <p class="empty-state">
+            Nessun evento programmato
+        </p>
+
+
+        }
+
+
+        }
+
+
+    </section>
+
+
+
+
+    @if(pastEvents$ | async; as pastEvents) {
+
+
+    @if(pastEvents.length > 0) {
+
+
+    <div class="past-divider" (click)="togglePastEvents()">
+
+
+        <span>
+            Eventi passati
+        </span>
+
+
+        <mat-icon>
+            {{ showPastEvents ? 'expand_less' : 'expand_more' }}
+        </mat-icon>
+
+
+    </div>
+
+
+
+    @if(showPastEvents) {
+
+
+    <section class="past-events">
+
+
+        @for(event of pastEvents; track event.id) {
+
+
+        <app-event-card [event]="event" [past]="true" [currentUserId]="currentUser.currentUser?.uid"
+            (edit)="editEvent($event)" (delete)="deleteEvent($event)">
+        </app-event-card>
+
+
+        }
+
+
+    </section>
+
+
+    }
+
+
+    }
+
+
+    }
+
+
+
+
+    <button class="fab-create" mat-fab extended color="primary" (click)="createEvent()">
+
+
+        <mat-icon>
+            add
+        </mat-icon>
+
+
+        Crea Evento
+
+
+    </button>
+
+
+</div>

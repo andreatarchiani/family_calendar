@@ -1,0 +1,105 @@
+.app-header {
+
+    height: 64px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 0 16px;
+
+    background: white;
+
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 1000;
+
+}
+
+
+
+.title {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    font-size: 20px;
+
+    font-weight: 600;
+
+}
+
+.title mat-icon {
+
+    color: #2196f3;
+
+}
+
+.version {
+
+    font-size: 12px;
+
+    color: #757575;
+
+    margin-left: 4px;
+
+}
+
+.app-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 0 16px;
+
+}
+
+
+.title {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+}
+
+
+.account-area {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+}
+
+
+.account-name {
+
+    font-weight: 700;
+
+}
+
+
+.version {
+
+    color: #777;
+
+    font-size: 13px;
+
+}

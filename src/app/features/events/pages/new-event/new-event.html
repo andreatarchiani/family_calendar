@@ -1,0 +1,69 @@
+<form [formGroup]="eventForm">
+
+    @if(isEditMode) {
+
+    <h2>Modifica evento</h2>
+
+    } @else {
+
+    <h2>Nuovo evento</h2>
+
+    }
+
+
+    <mat-form-field appearance="outline">
+        <mat-label>Titolo</mat-label>
+        <input matInput formControlName="title">
+    </mat-form-field>
+
+
+
+    <mat-form-field appearance="outline">
+        <mat-label>Data</mat-label>
+        <input matInput type="date" formControlName="date">
+    </mat-form-field>
+
+
+
+    <mat-form-field appearance="outline">
+        <mat-label>Ora inizio</mat-label>
+        <input matInput type="time" formControlName="startTime">
+    </mat-form-field>
+
+
+
+    <mat-form-field appearance="outline">
+        <mat-label>Luogo</mat-label>
+        <input matInput formControlName="location">
+    </mat-form-field>
+
+
+
+    <mat-form-field appearance="outline">
+        <mat-label>Note</mat-label>
+
+        <textarea matInput rows="4" formControlName="notes">
+        </textarea>
+
+    </mat-form-field>
+
+
+
+    <button mat-raised-button type="button" [disabled]="eventForm.invalid" (click)="saveEvent()">
+
+
+        @if(isEditMode) {
+
+        Aggiorna
+
+        } @else {
+
+        Salva
+
+        }
+
+
+    </button>
+
+
+</form>

@@ -1,1 +1,55 @@
-<p>login works!</p>
+<h1>
+    Family Calendar
+</h1>
+
+
+<div class="login-box">
+
+
+    <input type="email" placeholder="Email" [(ngModel)]="email">
+
+
+    <input type="password" placeholder="Password" [(ngModel)]="password">
+
+
+
+    <button type="button" (click)="login()">
+
+        Login
+
+    </button>
+
+
+
+
+    <button class="google-button" type="button" (click)="loginGoogle()">
+
+
+        <img src="assets/google-logo.jpg">
+
+
+        Continua con Google
+
+
+    </button>
+
+
+
+
+
+    <p *ngIf="errorMessage">
+
+        {{ errorMessage }}
+
+    </p>
+
+
+</div>
+
+
+
+<div class="version">
+
+    v{{ appVersion }}
+
+</div>

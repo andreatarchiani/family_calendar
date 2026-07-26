@@ -1,0 +1,10 @@
+.content {
+
+    min-height: 100vh;
+
+    padding-bottom:
+        calc(90px + env(safe-area-inset-bottom));
+
+    box-sizing: border-box;
+
+}

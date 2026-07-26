@@ -1,0 +1,235 @@
+.event-card {
+
+    width: 100%;
+
+    border-radius: 18px;
+
+    padding: 12px;
+
+    box-sizing: border-box;
+
+    cursor: pointer;
+
+    transition: .2s;
+
+    overflow: hidden;
+
+}
+
+
+
+.event-card:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 8px 18px rgba(0, 0, 0, .12);
+
+}
+
+
+
+.event-card.past {
+
+    opacity: .65;
+
+}
+
+
+
+.card-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+
+}
+
+
+
+.title-area {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+}
+
+
+
+mat-card-title {
+
+    font-size: 20px;
+
+    font-weight: 700;
+
+}
+
+
+
+.delete-button {
+
+    margin-top: -8px;
+
+}
+
+
+
+.next-badge {
+
+    width: fit-content;
+
+    background: #2196f3;
+
+    color: white;
+
+    padding: 4px 10px;
+
+    border-radius: 999px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+}
+
+
+
+/* corpo */
+
+.event-main {
+
+    display: flex;
+
+    gap: 16px;
+
+    margin-top: 16px;
+
+}
+
+
+
+/* DATA */
+
+.date-box {
+
+    width: 55px;
+
+    min-width: 55px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    line-height: 1;
+
+}
+
+
+
+.day {
+
+    font-size: 32px;
+
+    font-weight: 800;
+
+    color: #212121;
+
+}
+
+
+
+.month {
+
+    margin-top: 4px;
+
+    font-size: 12px;
+
+    text-transform: uppercase;
+
+    font-weight: 700;
+
+    color: #555;
+
+}
+
+
+
+/* informazioni evento */
+
+.event-info {
+
+    flex: 1;
+
+}
+
+
+
+.event-info p {
+
+    margin: 6px 0;
+
+    font-size: 15px;
+
+}
+
+
+
+.time {
+
+    font-weight: 600;
+
+}
+
+
+
+/* badge oggi */
+
+.today-badge {
+
+    display: inline-block;
+
+    background: #4caf50;
+
+    color: white;
+
+    padding: 3px 10px;
+
+    border-radius: 999px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+}
+
+
+
+/* autore */
+
+.author {
+
+    margin-top: 14px;
+
+    display: inline-flex;
+
+    padding: 5px 12px;
+
+    border-radius: 999px;
+
+    background: rgba(255, 255, 255, .55);
+
+    border: 1px solid rgba(0, 0, 0, .15);
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+}
