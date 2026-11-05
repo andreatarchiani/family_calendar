@@ -80,20 +80,16 @@ export class FriendshipService {
       }
 
       const requesterRef = doc(this.firestore, 'users', data.requesterId);
-      const addresseeRef = doc(this.firestore, 'users', data.addresseeId);
+      const requesterSnapshot = await transaction.get(requesterRef);
 
-      const [requesterSnapshot, addresseeSnapshot] = await Promise.all([
-        transaction.get(requesterRef),
-        transaction.get(addresseeRef)
-      ]);
-
-      if (!requesterSnapshot.exists() || !addresseeSnapshot.exists()) {
-        throw new Error('Profilo utente non trovato.');
+      if (!requesterSnapshot.exists()) {
+        throw new Error('Profilo del richiedente non trovato.');
       }
 
       transaction.update(requestRef, { status: 'accepted' });
+      // Aggiorniamo solo il profilo del richiedente: l'altro lato ricava
+      // l'amicizia dalla relazione accettata, senza scrivere sul profilo altrui.
       transaction.update(requesterRef, { friends: arrayUnion(data.addresseeId) });
-      transaction.update(addresseeRef, { friends: arrayUnion(data.requesterId) });
     });
   }
 
