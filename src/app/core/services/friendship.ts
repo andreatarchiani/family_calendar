@@ -1,129 +1,161 @@
 import { Injectable, inject } from '@angular/core';
 import {
-    Firestore,
-    collection,
-    addDoc,
-    doc,
-    getDoc,
-    getDocs,
-    query,
-    updateDoc,
-    where
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  runTransaction,
+  updateDoc,
+  where,
+  arrayUnion
 } from '@angular/fire/firestore';
-import { arrayUnion } from '@angular/fire/firestore';
 
 export interface Friendship {
-    id?: string;
-    requesterId: string;
-    addresseeId: string;
-    status: 'pending' | 'accepted' | 'declined';
-    createdAt: number;
+  id?: string;
+  requesterId: string;
+  addresseeId: string;
+  status: 'pending' | 'accepted' | 'declined';
+  createdAt: number;
 }
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class FriendshipService {
-    private firestore = inject(Firestore);
+  private firestore = inject(Firestore);
 
-    async sendRequest(requesterId: string, addresseeId: string) {
-        if (requesterId === addresseeId) {
-            return null;
+  async sendRequest(requesterId: string, addresseeId: string) {
+    if (!requesterId || !addresseeId || requesterId === addresseeId) return null;
+
+    const requestRef = doc(
+      this.firestore,
+      'friendships',
+      `${requesterId}__${addresseeId}`
+    );
+    const reverseRef = doc(
+      this.firestore,
+      'friendships',
+      `${addresseeId}__${requesterId}`
+    );
+
+    return runTransaction(this.firestore, async transaction => {
+      const [requestSnapshot, reverseSnapshot] = await Promise.all([
+        transaction.get(requestRef),
+        transaction.get(reverseRef)
+      ]);
+
+      if (reverseSnapshot.exists()) {
+        const reverseStatus = reverseSnapshot.data()['status'];
+        if (reverseStatus === 'pending' || reverseStatus === 'accepted') {
+          return null;
         }
+      }
 
-        const q = query(
-            collection(this.firestore, 'friendships'),
-            where('requesterId', '==', requesterId),
-            where('addresseeId', '==', addresseeId),
-            where('status', '==', 'pending')
-        );
+      if (requestSnapshot.exists()) {
+        const status = requestSnapshot.data()['status'];
+        if (status === 'pending' || status === 'accepted') return null;
+      }
 
-        const existing = await getDocs(q);
-        if (!existing.empty) {
-            return null;
-        }
+      transaction.set(requestRef, {
+        requesterId,
+        addresseeId,
+        status: 'pending',
+        createdAt: Date.now()
+      });
 
-        const ref = await addDoc(collection(this.firestore, 'friendships'), {
-            requesterId,
-            addresseeId,
-            status: 'pending',
-            createdAt: Date.now()
-        });
+      return requestRef.id;
+    });
+  }
 
-        return ref.id;
-    }
+  async acceptRequest(requestId: string, currentUserId: string) {
+    const requestRef = doc(this.firestore, 'friendships', requestId);
 
-    async acceptRequest(requestId: string) {
-        const ref = doc(this.firestore, 'friendships', requestId);
-        const snap = await getDoc(ref);
+    await runTransaction(this.firestore, async transaction => {
+      const snapshot = await transaction.get(requestRef);
+      if (!snapshot.exists()) return;
 
-        if (!snap.exists()) {
-            return;
-        }
+      const data = snapshot.data() as Friendship;
+      if (data.addresseeId !== currentUserId || data.status !== 'pending') {
+        throw new Error('Richiesta non valida o non più disponibile.');
+      }
 
-        const data = snap.data() as Friendship;
+      const requesterRef = doc(this.firestore, 'users', data.requesterId);
+      const addresseeRef = doc(this.firestore, 'users', data.addresseeId);
 
-        await updateDoc(ref, { status: 'accepted' });
+      const [requesterSnapshot, addresseeSnapshot] = await Promise.all([
+        transaction.get(requesterRef),
+        transaction.get(addresseeRef)
+      ]);
 
-        await updateDoc(doc(this.firestore, 'users', data.requesterId), {
-            friends: arrayUnion(data.addresseeId)
-        });
+      if (!requesterSnapshot.exists() || !addresseeSnapshot.exists()) {
+        throw new Error('Profilo utente non trovato.');
+      }
 
-        await updateDoc(doc(this.firestore, 'users', data.addresseeId), {
-            friends: arrayUnion(data.requesterId)
-        });
-    }
+      transaction.update(requestRef, { status: 'accepted' });
+      transaction.update(requesterRef, { friends: arrayUnion(data.addresseeId) });
+      transaction.update(addresseeRef, { friends: arrayUnion(data.requesterId) });
+    });
+  }
 
-    async declineRequest(requestId: string) {
-        const ref = doc(this.firestore, 'friendships', requestId);
-        await updateDoc(ref, { status: 'declined' });
-    }
+  async declineRequest(requestId: string, currentUserId: string) {
+    const ref = doc(this.firestore, 'friendships', requestId);
+    await runTransaction(this.firestore, async transaction => {
+      const snapshot = await transaction.get(ref);
+      if (!snapshot.exists()) return;
 
-    async getIncomingRequests(userId: string): Promise<Friendship[]> {
-        const q = query(
-            collection(this.firestore, 'friendships'),
-            where('addresseeId', '==', userId),
-            where('status', '==', 'pending')
-        );
+      const data = snapshot.data() as Friendship;
+      if (data.addresseeId !== currentUserId || data.status !== 'pending') {
+        throw new Error('Richiesta non valida o non più disponibile.');
+      }
 
-        const snap = await getDocs(q);
+      transaction.update(ref, { status: 'declined' });
+    });
+  }
 
-        return snap.docs.map(docSnap => ({
-            id: docSnap.id,
-            ...(docSnap.data() as Friendship)
-        }));
-    }
+  async getIncomingRequests(userId: string): Promise<Friendship[]> {
+    const q = query(
+      collection(this.firestore, 'friendships'),
+      where('addresseeId', '==', userId),
+      where('status', '==', 'pending')
+    );
 
-        
-    async getFriends(userId: string): Promise<string[]> {
-        const friendshipsRef = collection(this.firestore, 'friendships');
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(item => ({
+      id: item.id,
+      ...(item.data() as Friendship)
+    }));
+  }
 
-        const [sent, received] = await Promise.all([
-            getDocs(query(
-                friendshipsRef,
-                where('requesterId', '==', userId),
-                where('status', '==', 'accepted')
-            )),
-            getDocs(query(
-                friendshipsRef,
-                where('addresseeId', '==', userId),
-                where('status', '==', 'accepted')
-            ))
-        ]);
+  async getFriends(userId: string): Promise<string[]> {
+    const friendships = collection(this.firestore, 'friendships');
 
-        const friendIds = new Set<string>();
+    const [sent, received] = await Promise.all([
+      getDocs(query(
+        friendships,
+        where('requesterId', '==', userId),
+        where('status', '==', 'accepted')
+      )),
+      getDocs(query(
+        friendships,
+        where('addresseeId', '==', userId),
+        where('status', '==', 'accepted')
+      ))
+    ]);
 
-        sent.docs.forEach(friendship => {
-            const data = friendship.data();
-            friendIds.add(data['addresseeId']);
-        });
+    const ids = new Set<string>();
+    sent.docs.forEach(item => ids.add(item.data()['addresseeId']));
+    received.docs.forEach(item => ids.add(item.data()['requesterId']));
+    return Array.from(ids);
+  }
 
-        received.docs.forEach(friendship => {
-            const data = friendship.data();
-            friendIds.add(data['requesterId']);
-        });
+  async getFriendshipStatus(userId: string, otherUserId: string) {
+    const [outgoing, incoming] = await Promise.all([
+      getDoc(doc(this.firestore, 'friendships', `${userId}__${otherUserId}`)),
+      getDoc(doc(this.firestore, 'friendships', `${otherUserId}__${userId}`))
+    ]);
 
-        return Array.from(friendIds);
-    }
-
+    if (outgoing.exists()) return outgoing.data()['status'];
+    if (incoming.exists()) return incoming.data()['status'];
+    return null;
+  }
 }
