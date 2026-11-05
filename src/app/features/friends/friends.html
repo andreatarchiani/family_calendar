@@ -1,63 +1,57 @@
-
 <section class="friends-page">
   <h2>Amici</h2>
 
-  <div class="card">
-    <h3>Cerca utenti</h3>
+  <div class="card friend-code-card">
+    <h3>Il tuo codice amico</h3>
+    <p>Condividi questo codice con chi vuoi aggiungere. Per inviare una richiesta, l'altra persona dovrà inserirlo nella propria pagina Amici.</p>
+    <div class="my-code-row">
+      <strong class="my-code">{{ friendCode || '------' }}</strong>
+      <button mat-stroked-button type="button" (click)="copyFriendCode()" [disabled]="!friendCode">
+        <mat-icon>content_copy</mat-icon>
+        Copia codice
+      </button>
+    </div>
+  </div>
 
+  <div class="card">
+    <h3>Aggiungi un amico</h3>
     <div class="search-row">
       <input
         [(ngModel)]="searchTerm"
-        placeholder="Cerca nome..."
+        inputmode="numeric"
+        maxlength="6"
+        autocomplete="off"
+        placeholder="Inserisci il codice a 6 cifre..."
+        (keyup.enter)="searchUsers()"
       />
-
-      <button mat-flat-button color="primary" (click)="searchUsers()">
+      <button mat-flat-button color="primary" (click)="searchUsers()" [disabled]="loading">
         Cerca
       </button>
     </div>
 
     @if (loading) {
-      <p>Caricamento...</p>
+      <p>Ricerca in corso...</p>
     }
 
-    @if (searchResults.length) {
-      @for (user of searchResults; track user.uid) {
-        <div class="item">
-          <span>{{ user.name }}</span>
-
-          <button mat-stroked-button (click)="sendRequest(user.uid)">
-            Aggiungi
-          </button>
-        </div>
-      }
+    @if (searchResult; as user) {
+      <div class="item">
+        <span>{{ user.name }}</span>
+        <button mat-stroked-button color="primary" (click)="sendRequest(user.uid)">
+          Invia richiesta
+        </button>
+      </div>
     }
   </div>
 
   <div class="card">
     <h3>Richieste in arrivo</h3>
-
     @if (incomingRequests.length) {
       @for (request of incomingRequests; track request.id) {
         <div class="item">
-          <span>
-            Richiesta da {{ request.requesterName || request.requesterId }}
-          </span>
-
+          <span>Richiesta da {{ request.requesterName || 'Utente' }}</span>
           <div class="actions">
-            <button
-              mat-flat-button
-              color="primary"
-              (click)="acceptRequest(request.id!)"
-            >
-              Accetta
-            </button>
-
-            <button
-              mat-stroked-button
-              (click)="declineRequest(request.id!)"
-            >
-              Rifiuta
-            </button>
+            <button mat-flat-button color="primary" (click)="acceptRequest(request.id!)">Accetta</button>
+            <button mat-stroked-button (click)="declineRequest(request.id!)">Rifiuta</button>
           </div>
         </div>
       }
@@ -68,32 +62,20 @@
 
   <div class="card">
     <h3>I tuoi amici</h3>
-
     @if (friends.length > 0) {
       <p>Numero amici: {{ friends.length }}</p>
-
       @for (friend of friends; track friend.uid) {
         <mat-card class="friend-card">
           <div class="friend">
-
-            <div
-              class="avatar"
-              [style.background]="friendColors[friend.uid] || '#cccccc'"
-            >
-              {{
-                (friendNames[friend.uid] || friend.name)
-                  ?.charAt(0)
-                  ?.toUpperCase()
-              }}
+            <div class="avatar" [style.background]="friendColors[friend.uid] || '#cccccc'">
+              {{ (friendNames[friend.uid] || friend.name)?.charAt(0)?.toUpperCase() }}
             </div>
-
             <input
               class="friend-name"
               [value]="friendNames[friend.uid] || friend.name"
               (change)="changeFriendName(friend.uid, $event)"
               placeholder="Nome amico"
             />
-
             <input
               type="color"
               class="color-picker"
@@ -101,7 +83,6 @@
               (change)="changeColor(friend.uid, $event)"
               title="Cambia colore"
             />
-
           </div>
         </mat-card>
       }
