@@ -6,4 +6,5 @@ export interface User {
     photoURL?: string;
     friends?: string[];
     friendCode?: string;
+    lastAcceptedFriendshipId?: string;
 }
