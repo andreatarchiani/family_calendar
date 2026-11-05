@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "dist/family-calendar",
+    "public": "dist/family-calendar/browser",
     "ignore": [
       "firebase.json",
       "**/.*",
