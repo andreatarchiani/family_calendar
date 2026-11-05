@@ -5,4 +5,5 @@ export interface User {
     color: string;
     photoURL?: string;
     friends?: string[];
+    friendCode?: string;
 }
