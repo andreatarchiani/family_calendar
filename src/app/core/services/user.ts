@@ -1,390 +1,203 @@
-import { inject, Injectable, EnvironmentInjector, runInInjectionContext } from '@angular/core';
-
+import { inject, Injectable } from '@angular/core';
 import {
   Firestore,
   doc,
   getDoc,
-  setDoc,
   updateDoc,
-  collection,
-  query,
-  where,
-  getDocs
+  runTransaction
 } from '@angular/fire/firestore';
-
 import { Auth as FirebaseAuth } from '@angular/fire/auth';
 
 import { User as FamilyUser } from '../models/user';
 
-
+export interface FriendCodeLookup {
+  uid: string;
+  name: string;
+  photoURL?: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-
-
-  private injector = inject(EnvironmentInjector);
-
   private firestore = inject(Firestore);
-
   private auth = inject(FirebaseAuth);
-
-
-
   private userCache = new Map<string, FamilyUser>();
 
-
-
-
-
   async getCurrentUser(): Promise<FamilyUser | null> {
-
-
     const firebaseUser = this.auth.currentUser;
+    if (!firebaseUser) return null;
 
-
-    if (!firebaseUser) {
-
-      return null;
-
-    }
-
-
-    return this.getUserById(
-      firebaseUser.uid
+    return this.createUserIfNotExists(
+      firebaseUser.uid,
+      firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Utente',
+      firebaseUser.email || '',
+      firebaseUser.photoURL || undefined
     );
-
   }
 
-
-
-
-
-
-
   async getUserById(uid: string): Promise<FamilyUser | null> {
-
-
-    // controllo cache
-
     const cachedUser = this.userCache.get(uid);
+    if (cachedUser) return cachedUser;
 
-
-    if (cachedUser) {
-
-      return cachedUser;
-
-    }
-
-
-
-
-
-    const userDoc = await runInInjectionContext(
-
-      this.injector,
-
-      () => getDoc(
-
-        doc(
-          this.firestore,
-          'users',
-          uid
-        )
-
-      )
-
+    const userSnapshot = await getDoc(
+      doc(this.firestore, 'users', uid)
     );
 
-
-
-
-
-    if (!userDoc.exists()) {
-
-      return null;
-
-    }
-
-
-
-
+    if (!userSnapshot.exists()) return null;
 
     const user: FamilyUser = {
-
       uid,
-
-      ...(userDoc.data() as Omit<FamilyUser, 'uid'>)
-
+      ...(userSnapshot.data() as Omit<FamilyUser, 'uid'>)
     };
 
-
-
-
-
-    this.userCache.set(
-      uid,
-      user
-    );
-
+    this.userCache.set(uid, user);
     return user;
   }
 
-
+  /**
+   * Crea il profilo al primo accesso e assegna un codice numerico univoco.
+   * La transazione riserva il documento friendCodes/{codice} e aggiorna
+   * il profilo nello stesso commit, evitando assegnazioni duplicate.
+   */
   async createUserIfNotExists(
-
     uid: string,
-
     name: string,
-
     email: string,
-
     photoURL?: string
-
   ): Promise<FamilyUser> {
-
-    const userRef = doc(
-
-      this.firestore,
-
-      'users',
-
-      uid
-
-    );
-
-
-    const snapshot = await runInInjectionContext(
-      this.injector,
-      () => getDoc(userRef)
-    );
-
-
-    // Utente già presente
-    if (snapshot.exists()) {
-
-
-      const data = snapshot.data();
-
-
-      const existingUser: FamilyUser = {
-
-        uid,
-
-        name: data['name'],
-
-        email: data['email'],
-
-        color: data['color'],
-
-        photoURL: data['photoURL'],
-
-        friends: data['friends'] ?? []
-
-      };
-
-
-      this.userCache.set(
-        uid,
-        existingUser
-      );
-
-
-      return existingUser;
-
-    }
-
-
-
-
-
-
-
-    // Primo accesso Google
-
-    const newUser: FamilyUser = {
-
-
-      uid,
-
-
-      name,
-
-
-      email,
-
-
-      photoURL,
-
-
-      color: this.generateColor(),
-
-      friends: []
-
-    };
-
-
-
-
-
-    await runInInjectionContext(
-      this.injector,
-      () => setDoc(userRef, newUser)
-    );
-
-
-
-
-
-    this.userCache.set(
-
-      uid,
-
-      newUser
-
-    );
-
-
-
-
-
-
-    return newUser;
-
-
-  }
-
-
-
-
-
-
-
-
-
-  async updateColor(
-
-    uid: string,
-
-    color: string
-
-  ) {
-
-
-
-    await updateDoc(
-
-      doc(
-
-        this.firestore,
-
-        'users',
-
-        uid
-
-      ),
-
-      {
-
-        color
-
+    const userRef = doc(this.firestore, 'users', uid);
+
+    const user = await runTransaction(this.firestore, async transaction => {
+      const userSnapshot = await transaction.get(userRef);
+      const existingData = userSnapshot.exists() ? userSnapshot.data() : {};
+
+      const existingCode = existingData['friendCode'];
+
+      if (typeof existingCode === 'string' && /^\d{6}$/.test(existingCode)) {
+        const existingCodeRef = doc(this.firestore, 'friendCodes', existingCode);
+        const codeSnapshot = await transaction.get(existingCodeRef);
+
+        if (!codeSnapshot.exists()) {
+          const profileName = existingData['name'] || name;
+          const profilePhoto = existingData['photoURL'] || photoURL || null;
+
+          transaction.set(existingCodeRef, {
+            uid,
+            name: profileName,
+            photoURL: profilePhoto,
+            createdAt: Date.now()
+          });
+
+          if (userSnapshot.exists()) {
+            transaction.update(userRef, { friendCode: existingCode });
+          }
+
+          return {
+            uid,
+            ...(existingData as Omit<FamilyUser, 'uid'>),
+            name: profileName,
+            friendCode: existingCode
+          } as FamilyUser;
+        }
+
+        if (codeSnapshot.data()['uid'] === uid) {
+          return {
+            uid,
+            ...(existingData as Omit<FamilyUser, 'uid'>),
+            friendCode: existingCode
+          } as FamilyUser;
+        }
       }
 
-    );
+      // In caso di collisione, la transazione prova un altro codice.
+      for (let attempt = 0; attempt < 30; attempt++) {
+        const friendCode = String(
+          Math.floor(100000 + Math.random() * 900000)
+        );
+        const codeRef = doc(this.firestore, 'friendCodes', friendCode);
+        const codeSnapshot = await transaction.get(codeRef);
 
+        if (codeSnapshot.exists()) continue;
 
+        const profileName = existingData['name'] || name;
+        const profileEmail = existingData['email'] || email;
+        const profileColor = existingData['color'] || this.generateColor();
+        const profilePhoto = existingData['photoURL'] || photoURL;
 
+        const newUser: FamilyUser = {
+          uid,
+          name: profileName,
+          email: profileEmail,
+          color: profileColor,
+          friends: existingData['friends'] ?? [],
+          friendCode,
+          ...(profilePhoto ? { photoURL: profilePhoto } : {})
+        };
 
+        transaction.set(userRef, newUser, { merge: true });
+        transaction.set(codeRef, {
+          uid,
+          name: profileName,
+          photoURL: profilePhoto || null,
+          createdAt: Date.now()
+        });
 
-    // aggiorna anche la cache
+        return newUser;
+      }
 
-    const cachedUser = this.userCache.get(uid);
+      throw new Error('Impossibile generare un codice amico disponibile. Riprova.');
+    });
 
+    this.userCache.set(uid, user);
+    return user;
+  }
 
+  async findUserByFriendCode(code: string): Promise<FriendCodeLookup | null> {
+    const normalizedCode = code.trim();
 
-    if (cachedUser) {
-
-
-      cachedUser.color = color;
-
-
-
-      this.userCache.set(
-
-        uid,
-
-        cachedUser
-
-      );
-
-
+    if (!/^\d{6}$/.test(normalizedCode)) {
+      return null;
     }
 
+    const snapshot = await getDoc(
+      doc(this.firestore, 'friendCodes', normalizedCode)
+    );
 
+    if (!snapshot.exists()) return null;
+
+    const data = snapshot.data();
+
+    return {
+      uid: data['uid'],
+      name: data['name'] || 'Utente Family Calendar',
+      ...(data['photoURL'] ? { photoURL: data['photoURL'] } : {})
+    };
   }
 
+  async updateColor(uid: string, color: string): Promise<void> {
+    await updateDoc(
+      doc(this.firestore, 'users', uid),
+      { color }
+    );
 
-
-
-
-
-
-
+    const cachedUser = this.userCache.get(uid);
+    if (cachedUser) {
+      cachedUser.color = color;
+      this.userCache.set(uid, cachedUser);
+    }
+  }
 
   private generateColor(): string {
-
-
     const colors = [
-
-      '#2196F3', // blu
-
-      '#4CAF50', // verde
-
-      '#FF9800', // arancio
-
-      '#E91E63', // rosa
-
-      '#9C27B0', // viola
-
-      '#009688'  // verde acqua
-
+      '#2196F3',
+      '#4CAF50',
+      '#FF9800',
+      '#E91E63',
+      '#9C27B0',
+      '#009688'
     ];
 
-
-
-    return colors[
-
-      Math.floor(
-
-        Math.random() * colors.length
-
-      )
-
-    ];
-
-
-  }
-
-
-
-
-  async searchUsers(term: string): Promise<FamilyUser[]> {
-    const q = query(
-      collection(this.firestore, 'users'),
-      where('name', '>=', term),
-      where('name', '<=', term + '\uf8ff')
-    );
-
-    const snapshot = await runInInjectionContext(
-      this.injector,
-      () => getDocs(q)
-    );
-
-    return snapshot.docs.map(docSnap => ({
-      uid: docSnap.id,
-      ...(docSnap.data() as Omit<FamilyUser, 'uid'>)
-    }));
-
+    return colors[Math.floor(Math.random() * colors.length)];
   }
 }
