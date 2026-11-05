@@ -135,8 +135,7 @@ export class Friends implements OnInit {
     ]);
 
     this.incomingRequests = await Promise.all(requests.map(async request => {
-      const requester = await this.userService.getUserById(request.requesterId);
-      return { ...request, requesterName: requester?.name || 'Utente' };
+      return { ...request, requesterName: request.requesterName || 'Utente' };
     }));
 
     const resolvedFriends = await Promise.all(
@@ -152,7 +151,8 @@ export class Friends implements OnInit {
     try {
       const requestId = await this.friendshipService.sendRequest(
         this.currentUser.uid,
-        targetUid
+        targetUid,
+        this.currentUser.name
       );
 
       if (!requestId) {
