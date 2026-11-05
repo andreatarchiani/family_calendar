@@ -130,7 +130,7 @@ export class UserService {
           name: profileName,
           email: profileEmail,
           color: profileColor,
-          friends: existingData['friends'] ?? [],
+          ...(Array.isArray(existingData['friends']) ? { friends: existingData['friends'] } : {}),
           friendCode,
           ...(profilePhoto ? { photoURL: profilePhoto } : {})
         };
