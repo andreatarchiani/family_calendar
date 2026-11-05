@@ -55,20 +55,6 @@ service cloud.firestore {
       return code is string && code.matches('^[0-9]{6}$');
     }
 
-    function friendListChangeIsValid(userId) {
-      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
-        && request.resource.data.friends is list
-        && request.resource.data.friends.hasAll(resource.data.friends)
-        && request.resource.data.friends.hasAny([request.auth.uid])
-        && getAfter(friendshipDoc(userId, request.auth.uid)).data.status == 'accepted'
-          || (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
-            && request.resource.data.friends is list
-            && request.resource.data.friends.hasAll(resource.data.friends)
-            && request.resource.data.friends.hasAny([request.auth.uid])
-            && getAfter(friendshipDoc(request.auth.uid, userId)).data.status == 'accepted'
-          );
-    }
 
     match /users/{userId} {
       allow get: if canReadUser(userId);
@@ -84,17 +70,27 @@ service cloud.firestore {
           (
             request.auth.uid == userId
             && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['friends'])
+            && (
+              !request.resource.data.diff(resource.data).affectedKeys().hasAny(['friendCode'])
+              || getAfter(/databases/$(database)/documents/friendCodes/$(request.resource.data.friendCode)).data.uid == userId
+            )
           )
           ||
           (
             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
             && request.resource.data.friends is list
-            && request.resource.data.friends.hasAll(resource.data.friends)
-            && request.resource.data.friends.hasAny([request.auth.uid])
             && (
-              getAfter(friendshipDoc(userId, request.auth.uid)).data.status == 'accepted'
-              || getAfter(friendshipDoc(request.auth.uid, userId)).data.status == 'accepted'
+              (
+                resource.data.friends is list
+                && request.resource.data.friends.hasAll(resource.data.friends)
+              )
+              ||
+              (
+                !resource.data.keys().hasAny(['friends'])
+                && request.resource.data.friends == [request.auth.uid]
+              )
             )
+            && getAfter(friendshipDoc(userId, request.auth.uid)).data.status == 'accepted'
           )
         );
 
