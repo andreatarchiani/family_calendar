@@ -1,5 +1,6 @@
 <form [formGroup]="eventForm">
 
+
     @if(isEditMode) {
 
     <h2>Modifica evento</h2>
@@ -11,45 +12,172 @@
     }
 
 
+
+
     <mat-form-field appearance="outline">
+
         <mat-label>Titolo</mat-label>
+
         <input matInput formControlName="title">
+
     </mat-form-field>
 
 
 
+
+
     <mat-form-field appearance="outline">
-        <mat-label>Data</mat-label>
-        <input matInput type="date" formControlName="date">
+
+        <mat-label>Data inizio</mat-label>
+
+        <input matInput type="date" formControlName="startDate" (change)="onStartDateChange()">
+
     </mat-form-field>
 
 
+    <mat-form-field appearance="outline">
+
+        <mat-label>Data fine</mat-label>
+
+        <input matInput type="date" formControlName="endDate" [min]="eventForm.controls.startDate.value">
+
+    </mat-form-field>
+
+
+    @if(isDateRangeInvalid()) {
+
+    <p class="error-message">
+        La data di fine non può essere precedente alla data di inizio.
+    </p>
+
+    }
+
+
+
+
 
     <mat-form-field appearance="outline">
+
         <mat-label>Ora inizio</mat-label>
+
         <input matInput type="time" formControlName="startTime">
+
     </mat-form-field>
 
 
 
+
+
     <mat-form-field appearance="outline">
+
         <mat-label>Luogo</mat-label>
+
         <input matInput formControlName="location">
+
     </mat-form-field>
 
 
 
+
+
     <mat-form-field appearance="outline">
+
         <mat-label>Note</mat-label>
+
 
         <textarea matInput rows="4" formControlName="notes">
         </textarea>
 
+
     </mat-form-field>
 
 
 
-    <button mat-raised-button type="button" [disabled]="eventForm.invalid" (click)="saveEvent()">
+
+
+    <mat-form-field appearance="outline">
+
+
+        <mat-label>
+            Visibilità evento
+        </mat-label>
+
+
+        <mat-select formControlName="visibility">
+
+
+            <mat-option value="none">
+
+                Nessuno
+
+            </mat-option>
+
+
+
+            <mat-option value="all">
+
+                Tutti i miei amici
+
+            </mat-option>
+
+
+
+            <mat-option value="selected">
+
+                Seleziona amici
+
+            </mat-option>
+
+
+        </mat-select>
+
+
+    </mat-form-field>
+
+
+
+
+
+
+
+    @if(eventForm.value.visibility === 'selected') {
+
+
+    <h3>
+        Seleziona amici
+    </h3>
+
+
+
+
+    @for(friend of friends; track friend.uid) {
+
+
+    <mat-checkbox [checked]="isFriendSelected(friend.uid)" (change)="toggleFriendVisibility(friend.uid)">
+
+
+        {{friend.name}}
+
+
+    </mat-checkbox>
+
+
+    }
+
+
+    }
+
+
+
+
+
+
+
+    @if(!isEditMode || canEdit) {
+
+
+    <button mat-raised-button type="button" [disabled]="eventForm.invalid || isDateRangeInvalid()" (click)="saveEvent()">
+
 
 
         @if(isEditMode) {
@@ -63,7 +191,12 @@
         }
 
 
+
     </button>
+
+
+    }
+
 
 
 </form>

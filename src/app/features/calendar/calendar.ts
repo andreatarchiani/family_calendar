@@ -1,28 +1,38 @@
-import { Component, inject, ElementRef, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  inject,
+  ElementRef,
+  ViewChild
+} from '@angular/core';
 
+import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 
 import { EventService } from '../../core/services/event.services';
 import { UserService } from '../../core/services/user';
+import { FriendshipService } from '../../core/services/friendship';
+import { CurrentUser } from '../../core/services/current-user';
+import { FriendColorService } from '../../core/services/friend-color';
 
-import { switchMap } from 'rxjs';
+import { switchMap, from } from 'rxjs';
 
 import { Router } from '@angular/router';
 
 import { User } from '../../core/models/user';
 
 
+
 @Component({
   selector: 'app-calendar',
+  standalone: true,
   imports: [
     CommonModule,
     MatIconModule,
     MatButtonModule
   ],
   templateUrl: './calendar.html',
-  styleUrl: './calendar.scss',
+  styleUrl: './calendar.scss'
 })
 export class Calendar {
 
@@ -33,20 +43,30 @@ export class Calendar {
 
 
   private eventService = inject(EventService);
-
   private userService = inject(UserService);
-
+  private friendshipService = inject(FriendshipService);
+  private currentUserService = inject(CurrentUser);
+  private friendColorService = inject(FriendColorService);
   private router = inject(Router);
 
 
 
   events: any[] = [];
 
+  users: User[] = [];
+
+  selectedUsers: string[] = [];
+
+  friendColors: Record<string, string> = {};
+
+  friendNames: Record<string, string> = {};
+
+
 
   currentDate = new Date();
 
-
   days: (Date | null)[] = [];
+
 
 
   weekDays = [
@@ -64,41 +84,7 @@ export class Calendar {
   viewMode: 'calendar' | 'agenda' = 'calendar';
 
 
-
-  selectedUsers: string[] = [];
-
   selectedDay: Date | null = null;
-
-
-
-  users: User[] = [
-
-    {
-      uid: '5CEMGED99sXU4CHCjorGiesOqcg2',
-      name: 'Andrea',
-      color: '#2196F3'
-    },
-
-    {
-      uid: 'lG80W8KxByVMajAfVLb1Ra2Hy3j1',
-      name: 'Lorenzo',
-      color: '#FF9800'
-    },
-
-    {
-      uid: 'AdVg0fjAStZRCBgT9sby15Wamvr2',
-      name: 'Gianna',
-      color: '#4CAF50'
-    },
-
-    {
-      uid: 'x3MkLARKwRZHvWDFkIgwuT',
-      name: 'Elisabetta',
-      color: '#FFC107'
-    }
-
-  ];
-
 
 
 
@@ -110,73 +96,256 @@ export class Calendar {
 
 
 
+    this.currentUserService.user$
+
+      .pipe(
+
+        switchMap(user => {
+
+
+          if (!user) {
+
+            return from([[]]);
+
+          }
+
+
+
+          return from(
+            this.loadFriends(user.uid)
+          )
+
+            .pipe(
+
+              switchMap(friendIds => {
+
+
+                const visibleUsers = [
+                  user.uid,
+                  ...friendIds
+                ];
+
+
+                console.log(
+                  'UTENTI VISIBILI',
+                  visibleUsers
+                );
+
+
+
+                return this.eventService.getVisibleEvents(
+                  user.uid,
+                  visibleUsers
+                );
+
+
+              }),
+
+
+
+
+              switchMap(async events => {
+
+
+                console.log(
+                  'EVENTI FIREBASE',
+                  events
+                );
+
+
+
+                return Promise.all(
+
+                  events.map(async event => {
+
+
+                    const author =
+                      await this.userService.getUserById(
+                        event.authorId
+                      );
+
+
+
+                    return {
+
+                      ...event,
+
+                      author
+
+                    };
+
+
+                  })
+
+                );
+
+
+              })
+
+            );
+
+
+        })
+
+
+      )
+
+
+      .subscribe(events => {
+
+
+        console.log(
+          'EVENTI FINALI',
+          events
+        );
+
+
+        this.events = events;
+
+
+      });
+
+
+  }
+
+
+
+
+
+
+
+
+  async loadFriends(uid: string) {
+
+
+
+    const friendIds =
+      await this.friendshipService.getFriends(uid);
+
+
+
+    const friends =
+      await Promise.all(
+
+        friendIds.map(id =>
+          this.userService.getUserById(id)
+        )
+
+      );
+
+
+
+    const currentUser =
+      await this.userService.getUserById(uid);
+
+
+
+    this.users =
+      [
+
+        ...(currentUser ? [currentUser] : []),
+
+        ...friends.filter(
+          (u): u is User => !!u
+        )
+
+      ];
+
+
+
+
     this.selectedUsers =
       this.users.map(
-        user => user.uid
+        u => u.uid
       );
 
 
 
 
-    this.eventService.getEvents()
+    this.friendColorService
 
-      .pipe(
+      .getFriendColors(uid)
 
-        switchMap(async events => {
-
-
-          return Promise.all(
-
-            events.map(async event => {
+      .subscribe(data => {
 
 
-              const firebaseUser =
-                await this.userService.getUserById(
-                  event.authorId
-                );
+        const prefs: any = data;
 
 
 
-              const user = firebaseUser
-                ? {
-
-                  uid: firebaseUser.uid,
-                  name: firebaseUser.name,
-                  color: firebaseUser.color
-
-                }
-
-                : undefined;
+        this.friendColors =
+          prefs?.friendColors ?? {};
 
 
 
-              return {
-
-                ...event,
-
-                author: user
-
-              };
+        this.friendNames =
+          prefs?.friendNames ?? {};
 
 
-            })
-
-          );
 
 
-        })
+        this.users =
+          this.users.map(user => ({
 
-      )
 
-      .subscribe(events => {
+            ...user,
 
-        this.events = events;
+
+            name:
+              this.friendNames[user.uid]
+              ??
+              user.name,
+
+
+
+            color:
+              this.friendColors[user.uid]
+              ??
+              user.color
+
+
+
+          }));
+
 
       });
 
 
 
+    return friendIds;
+
+
   }
+
+
+
+
+
+
+
+
+
+  getEventColor(event: any) {
+
+
+    return (
+
+      this.friendColors[event.authorId]
+
+      ??
+
+      event.author?.color
+
+      ??
+
+      '#ccc'
+
+    );
+
+
+  }
+
+
 
 
 
@@ -198,45 +367,33 @@ export class Calendar {
 
 
 
-  get monthName(): string {
 
 
-    return this.currentDate.toLocaleString(
-      'it-IT',
-      {
-        month: 'long',
-        year: 'numeric'
-      }
+  private formatLocalDate(date: Date) {
+
+
+    return (
+
+      date.getFullYear()
+      +
+      '-'
+      +
+      String(
+        date.getMonth() + 1
+      ).padStart(2, '0')
+      +
+      '-'
+      +
+      String(
+        date.getDate()
+      ).padStart(2, '0')
+
     );
 
 
   }
 
 
-
-
-
-
-  private formatLocalDate(date: Date): string {
-
-
-    const year = date.getFullYear();
-
-
-    const month =
-      String(date.getMonth() + 1)
-        .padStart(2, '0');
-
-
-    const day =
-      String(date.getDate())
-        .padStart(2, '0');
-
-
-
-    return `${year}-${month}-${day}`;
-
-  }
 
 
 
@@ -255,45 +412,36 @@ export class Calendar {
       this.currentDate.getFullYear();
 
 
-
     const month =
       this.currentDate.getMonth();
 
 
 
-
-    const firstDay =
-      new Date(
-        year,
-        month,
-        1
-      );
+    const first =
+      new Date(year, month, 1);
 
 
 
-    const lastDay =
-      new Date(
-        year,
-        month + 1,
-        0
-      );
+    const last =
+      new Date(year, month + 1, 0);
 
 
 
-    let startDay =
-      firstDay.getDay();
+    let start =
+      first.getDay();
 
 
 
-    startDay =
-      startDay === 0
-        ? 6
-        : startDay - 1;
+    start =
+      start === 0
+        ?
+        6
+        :
+        start - 1;
 
 
 
-
-    for (let i = 0; i < startDay; i++) {
+    for (let i = 0; i < start; i++) {
 
       this.days.push(null);
 
@@ -303,22 +451,14 @@ export class Calendar {
 
 
     for (
-      let day = 1;
-      day <= lastDay.getDate();
-      day++
+      let d = 1;
+      d <= last.getDate();
+      d++
     ) {
 
-
       this.days.push(
-
-        new Date(
-          year,
-          month,
-          day
-        )
-
+        new Date(year, month, d)
       );
-
 
     }
 
@@ -330,26 +470,24 @@ export class Calendar {
 
 
 
-  previousMonth() {
 
+
+  previousMonth() {
 
     this.currentDate =
       new Date(
-
         this.currentDate.getFullYear(),
         this.currentDate.getMonth() - 1,
         1
-
       );
 
 
     this.selectedDay = null;
 
-
     this.generateCalendar();
 
-
   }
+
 
 
 
@@ -358,24 +496,21 @@ export class Calendar {
 
   nextMonth() {
 
-
     this.currentDate =
       new Date(
-
         this.currentDate.getFullYear(),
         this.currentDate.getMonth() + 1,
         1
-
       );
 
 
     this.selectedDay = null;
 
-
     this.generateCalendar();
 
-
   }
+
+
 
 
 
@@ -392,16 +527,11 @@ export class Calendar {
 
     setTimeout(() => {
 
-
-      this.selectedDaySection?.nativeElement.scrollIntoView({
-
-        behavior: 'smooth',
-
-        block: 'start',
-
-        inline: 'nearest'
-
-      });
+      this.selectedDaySection
+        ?.nativeElement
+        .scrollIntoView({
+          behavior: 'smooth'
+        });
 
 
     }, 50);
@@ -415,7 +545,10 @@ export class Calendar {
 
 
 
+
+
   getEventsForDay(day: Date | null) {
+
 
     if (!day) {
 
@@ -424,31 +557,18 @@ export class Calendar {
     }
 
 
-
     const date =
       this.formatLocalDate(day);
 
 
 
-    return this.events.filter(event =>
+    return this.events.filter(event => {
+      const startDate = event.startDate ?? event.date;
+      const endDate = event.endDate ?? startDate;
 
-      event.date === date
-
-    );
-
-  }
-
-
-
-
-
-
-
-  getVisibleEventsForDay(day: Date | null) {
-
-
-    return this.getEventsForDay(day)
-      .slice(0, 2);
+      // Confronto YYYY-MM-DD: include entrambi gli estremi dell'intervallo.
+      return !!startDate && !!endDate && date >= startDate && date <= endDate;
+    });
 
 
   }
@@ -459,34 +579,34 @@ export class Calendar {
 
 
 
-  getRemainingEventsCount(day: Date | null) {
 
 
-    const total =
-      this.getEventsForDay(day).length;
+  getEventDateLabel(event: any): string {
 
+    const startDate = event.startDate ?? event.date;
+    const endDate = event.endDate ?? startDate;
 
+    if (!startDate) return '';
 
-    return total > 2
-      ? total - 2
-      : 0;
+    const format = (value: string) => new Intl.DateTimeFormat('it-IT', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(new Date(`${value}T12:00:00`));
 
+    return startDate === endDate
+      ? format(startDate)
+      : `${format(startDate)} – ${format(endDate)}`;
 
   }
-
-
-
-
-
-
 
 
   getAgendaEvents() {
 
-
-    const today =
-      new Date();
-
+    console.log(
+      'EVENTI AGENDA:',
+      this.events
+    );
 
 
     return this.events
@@ -494,23 +614,21 @@ export class Calendar {
       .filter(event => {
 
 
-        const eventDate =
-          new Date(
-            `${event.date}T${event.startTime}`
-          );
+        const authorId =
+          event.authorId
+          ??
+          event.author?.uid;
 
 
-        return eventDate >= today;
-
-
-      })
-
-      .filter(event => {
-
-
-        return this.selectedUsers.includes(
-          event.author?.uid
+        console.log(
+          'CONTROLLO EVENTO',
+          event.title,
+          authorId,
+          this.selectedUsers
         );
+
+
+        return this.selectedUsers.includes(authorId);
 
 
       })
@@ -518,122 +636,17 @@ export class Calendar {
       .sort((a, b) => {
 
 
-        const dateA =
-          new Date(
-            `${a.date}T${a.startTime}`
-          );
+        const dateA = a.startDate ?? a.date;
+        const dateB = b.startDate ?? b.date;
+
+        return new Date(`${dateA}T${a.startTime || '00:00'}`).getTime()
+          - new Date(`${dateB}T${b.startTime || '00:00'}`).getTime();
 
 
-        const dateB =
-          new Date(
-            `${b.date}T${b.startTime}`
-          );
-
-
-
-        return dateA.getTime()
-          -
-          dateB.getTime();
-
-
-      })
-
-      .slice(0, 20);
+      });
 
 
   }
-
-
-
-
-
-
-
-  openEvent(eventId: string) {
-
-
-    this.router.navigate(
-
-      ['/events'],
-
-      {
-
-        queryParams: {
-
-          id: eventId
-
-        }
-
-      }
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-  createEmptyEvent() {
-
-
-    this.router.navigate(
-      ['/events']
-    );
-
-
-  }
-
-
-
-
-
-
-
-  createEventFromSelectedDay() {
-
-
-    if (!this.selectedDay) {
-
-      this.createEmptyEvent();
-
-      return;
-
-    }
-
-
-
-    const date =
-      this.formatLocalDate(
-        this.selectedDay
-      );
-
-
-
-
-    this.router.navigate(
-
-      ['/events'],
-
-      {
-
-        queryParams: {
-
-          date
-
-        }
-
-      }
-
-    );
-
-
-  }
-
-
 
 
 
@@ -647,9 +660,7 @@ export class Calendar {
 
       this.selectedUsers =
         this.selectedUsers.filter(
-
-          userUid => userUid !== uid
-
+          id => id !== uid
         );
 
 
@@ -657,16 +668,74 @@ export class Calendar {
     else {
 
 
-      this.selectedUsers = [
-
-        ...this.selectedUsers,
-
-        uid
-
-      ];
+      this.selectedUsers.push(uid);
 
 
     }
+
+
+  }
+
+
+
+  openEvent(event: any) {
+
+    const currentUid =
+      this.currentUserService.currentUser?.uid;
+
+
+    if (!currentUid) {
+      return;
+    }
+
+
+    // se NON è il proprietario non faccio niente
+    if (event.authorId !== currentUid) {
+      return;
+    }
+
+
+    // solo il proprietario entra nella modifica
+    this.router.navigate(
+      ['/events'],
+      {
+        queryParams: {
+          id: event.id
+        }
+      }
+    );
+
+  }
+
+
+
+
+
+
+
+
+  createEventFromSelectedDay() {
+
+
+    const date =
+      this.selectedDay
+        ?
+        this.formatLocalDate(
+          this.selectedDay
+        )
+        :
+        undefined;
+
+
+
+    this.router.navigate(
+      ['/events'],
+      {
+        queryParams: {
+          date
+        }
+      }
+    );
 
 
   }
@@ -677,34 +746,31 @@ export class Calendar {
 
 
 
+
+
   isToday(day: Date | null) {
 
 
-    if (!day) {
-
+    if (!day)
       return false;
 
-    }
 
 
-
-    const today =
-      new Date();
-
+    const t = new Date();
 
 
 
     return (
 
-      day.getDate() === today.getDate()
+      day.getDate() === t.getDate()
 
       &&
 
-      day.getMonth() === today.getMonth()
+      day.getMonth() === t.getMonth()
 
       &&
 
-      day.getFullYear() === today.getFullYear()
+      day.getFullYear() === t.getFullYear()
 
     );
 
@@ -717,32 +783,42 @@ export class Calendar {
 
 
 
+
+
+  get monthName() {
+
+    return this.currentDate.toLocaleString(
+      'it-IT',
+      {
+        month: 'long',
+        year: 'numeric'
+      }
+    );
+
+  }
+
+
+
+
+
+
+
+
   get selectedDayTitle() {
 
 
-    if (!this.selectedDay) {
-
+    if (!this.selectedDay)
       return '';
-
-    }
-
 
 
 
     return this.selectedDay.toLocaleDateString(
-
       'it-IT',
-
       {
-
         weekday: 'long',
-
         day: 'numeric',
-
         month: 'long'
-
       }
-
     );
 
 

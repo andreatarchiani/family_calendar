@@ -1,3 +1,4 @@
+
 <section class="friends-page">
   <h2>Amici</h2>
 
@@ -5,7 +6,11 @@
     <h3>Cerca utenti</h3>
 
     <div class="search-row">
-      <input [(ngModel)]="searchTerm" placeholder="Cerca nome..." />
+      <input
+        [(ngModel)]="searchTerm"
+        placeholder="Cerca nome..."
+      />
+
       <button mat-flat-button color="primary" (click)="searchUsers()">
         Cerca
       </button>
@@ -19,6 +24,7 @@
       @for (user of searchResults; track user.uid) {
         <div class="item">
           <span>{{ user.name }}</span>
+
           <button mat-stroked-button (click)="sendRequest(user.uid)">
             Aggiungi
           </button>
@@ -33,12 +39,23 @@
     @if (incomingRequests.length) {
       @for (request of incomingRequests; track request.id) {
         <div class="item">
-          <span>Richiesta da {{ request.requesterId }}</span>
+          <span>
+            Richiesta da {{ request.requesterName || request.requesterId }}
+          </span>
+
           <div class="actions">
-            <button mat-flat-button color="primary" (click)="acceptRequest(request.id!)">
+            <button
+              mat-flat-button
+              color="primary"
+              (click)="acceptRequest(request.id!)"
+            >
               Accetta
             </button>
-            <button mat-stroked-button (click)="declineRequest(request.id!)">
+
+            <button
+              mat-stroked-button
+              (click)="declineRequest(request.id!)"
+            >
               Rifiuta
             </button>
           </div>
@@ -52,11 +69,41 @@
   <div class="card">
     <h3>I tuoi amici</h3>
 
-    @if (friends.length) {
+    @if (friends.length > 0) {
+      <p>Numero amici: {{ friends.length }}</p>
+
       @for (friend of friends; track friend.uid) {
-        <div class="item">
-          <span>{{ friend.name }}</span>
-        </div>
+        <mat-card class="friend-card">
+          <div class="friend">
+
+            <div
+              class="avatar"
+              [style.background]="friendColors[friend.uid] || '#cccccc'"
+            >
+              {{
+                (friendNames[friend.uid] || friend.name)
+                  ?.charAt(0)
+                  ?.toUpperCase()
+              }}
+            </div>
+
+            <input
+              class="friend-name"
+              [value]="friendNames[friend.uid] || friend.name"
+              (change)="changeFriendName(friend.uid, $event)"
+              placeholder="Nome amico"
+            />
+
+            <input
+              type="color"
+              class="color-picker"
+              [value]="friendColors[friend.uid] || '#cccccc'"
+              (change)="changeColor(friend.uid, $event)"
+              title="Cambia colore"
+            />
+
+          </div>
+        </mat-card>
       }
     } @else {
       <p>Ancora nessun amico</p>

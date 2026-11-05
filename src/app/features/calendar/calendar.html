@@ -20,6 +20,8 @@
 
     </div>
 
+
+
     <!-- AGENDA -->
 
     @if(viewMode === 'agenda') {
@@ -31,14 +33,19 @@
 
         @for(user of users; track user.uid) {
 
-        <button class="user-filter" [class.active]="selectedUsers.includes(user.uid)"
-            [style.background]="selectedUsers.includes(user.uid) ? user.color : '#f5f5f5'"
-            (click)="toggleUser(user.uid)">
+        <button class="user-filter" [class.active]="selectedUsers.includes(user.uid)" [style.background]="
+                        selectedUsers.includes(user.uid)
+                        ? user.color
+                        : '#f5f5f5'
+                    " (click)="toggleUser(user.uid)">
+
 
             <span class="filter-dot" [style.background]="user.color">
             </span>
 
-            {{user.name}}
+
+            {{ user.name }}
+
 
         </button>
 
@@ -48,17 +55,20 @@
 
 
 
+
     <div class="agenda">
 
 
         @for(event of getAgendaEvents(); track event.id) {
 
+        <div class="agenda-event" (click)="openEvent(event)">
 
-        <div class="agenda-event" (click)="openEvent(event.id)">
 
 
-            <span class="event-dot" [style.background-color]="event.author?.color || '#ccc'">
+            <span class="event-dot" [style.background-color]="getEventColor(event)">
             </span>
+
+
 
 
             <div class="agenda-content">
@@ -69,16 +79,17 @@
                 </strong>
 
 
+
                 <span>
-                    📅 {{ event.date }}
+                    📅 {{ getEventDateLabel(event) }}
                 </span>
 
 
+
                 <span>
-                    🕒 <small>
-                        {{ event.startTime }}
-                    </small>
+                    🕒 {{ event.startTime }}
                 </span>
+
 
 
                 @if(event.location) {
@@ -99,6 +110,16 @@
         }
 
 
+
+        @if(getAgendaEvents().length === 0) {
+
+        <p>
+            Nessun evento futuro
+        </p>
+
+        }
+
+
     </div>
 
 
@@ -107,10 +128,10 @@
 
 
 
-
     <!-- CALENDARIO -->
 
     @if(viewMode === 'calendar') {
+
 
 
     <div class="calendar-header">
@@ -123,6 +144,7 @@
             </mat-icon>
 
         </button>
+
 
 
 
@@ -148,17 +170,26 @@
 
 
 
+
     <div class="week-days">
+
 
         @for(day of weekDays; track day) {
 
+
         <div class="week-day">
+
             {{ day }}
+
         </div>
+
 
         }
 
+
     </div>
+
+
 
 
 
@@ -167,10 +198,13 @@
     <div class="calendar-grid">
 
 
+
         @for(day of days; track $index) {
 
 
+
         @if(day) {
+
 
 
         <div class="calendar-day" [class.today]="isToday(day)" (click)="selectDay(day)">
@@ -184,14 +218,27 @@
             </span>
 
 
+            <div class="day-event-indicators" aria-label="Eventi del giorno">
+
+                @for(event of getEventsForDay(day).slice(0, 3); track event.id) {
+
+                <span class="day-event-indicator" [style.background-color]="getEventColor(event)"></span>
+
+                }
+
+            </div>
+
 
             @if(isToday(day)) {
 
             <small class="today-label">
+
                 Oggi
+
             </small>
 
             }
+
 
 
         </div>
@@ -208,7 +255,9 @@
         }
 
 
+
         }
+
 
 
     </div>
@@ -218,11 +267,17 @@
 
 
 
+
     <!-- GIORNO SELEZIONATO -->
+
 
     @if(selectedDay) {
 
+
+
     <section #selectedDaySection class="selected-day-card">
+
+
 
         <div class="selected-day-header">
 
@@ -243,6 +298,7 @@
 
 
 
+
             <button mat-icon-button (click)="selectedDay = null">
 
                 <mat-icon>
@@ -258,6 +314,8 @@
 
 
 
+
+
         <div class="selected-events">
 
 
@@ -268,14 +326,11 @@
 
             @for(event of getEventsForDay(selectedDay); track event.id) {
 
+            <div class="selected-event" (click)="openEvent(event)">
 
-
-            <div class="selected-event" (click)="openEvent(event.id)">
-
-
-
-                <span class="event-dot" [style.background-color]="event.author?.color || '#ccc'">
+                <span class="event-dot" [style.background-color]="getEventColor(event)">
                 </span>
+
 
 
 
@@ -289,11 +344,18 @@
 
 
                     <span>
+                        📅 {{ getEventDateLabel(event) }}
+                    </span>
+
+                    @if(event.startTime) {
+                    <span>
                         🕒 {{ event.startTime }}
                     </span>
+                    }
 
 
                 </div>
+
 
 
             </div>
@@ -322,100 +384,35 @@
         </div>
 
 
+
+
+
+
         <button mat-flat-button color="primary" class="create-day-event" (click)="createEventFromSelectedDay()">
+
 
             <mat-icon>
                 add
             </mat-icon>
 
+
             Crea evento
 
+
         </button>
+
+
+
     </section>
-    }
-    }
 
 
-
-
-    <!-- AGENDA -->
-
-    @if(viewMode === 'agenda') {
-
-
-    <div class="agenda">
-
-
-        @for(event of getAgendaEvents(); track event.id) {
-
-
-
-        <div class="agenda-event" (click)="openEvent(event.id)">
-
-
-
-            <span class="event-dot" [style.background-color]="event.author?.color || '#ccc'">
-            </span>
-
-
-
-
-            <div class="agenda-content">
-
-
-                <strong>
-                    {{ event.title }}
-                </strong>
-
-
-
-                <span>
-                    📅 {{ event.date }}
-                </span>
-
-
-
-                <span>
-                    🕒 {{ event.startTime }}
-                </span>
-
-
-
-
-                @if(event.location) {
-
-                <span>
-                    📍 {{ event.location }}
-                </span>
-
-                }
-
-
-            </div>
-
-
-        </div>
-
-
-
-        }
-
-
-
-
-        @if(getAgendaEvents().length === 0) {
-
-
-        <p>
-            Nessun evento futuro
-        </p>
-
-
-        }
-
-
-    </div>
 
     }
+
+
+
+    }
+
+
 
 </div>

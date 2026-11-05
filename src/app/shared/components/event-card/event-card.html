@@ -1,5 +1,6 @@
-<mat-card class="event-card" [class.past]="past" [class.highlight]="highlight" (click)="edit.emit(event.id)"
-    [style.border-left]="'6px solid ' + (event.author?.color || '#ccc')">
+<mat-card class="event-card" [class.past]="past" [class.highlight]="highlight" (click)="openEvent()"
+    [style.border-left]="'6px solid ' + getEventColor()">
+
 
 
     <div class="card-header">
@@ -28,19 +29,25 @@
 
         @if(event.authorId === currentUserId) {
 
+
         <button class="delete-button" mat-icon-button color="warn"
             (click)="$event.stopPropagation(); delete.emit(event.id)">
+
 
             <mat-icon>
                 delete
             </mat-icon>
 
+
         </button>
+
 
         }
 
 
     </div>
+
+
 
 
 
@@ -50,16 +57,17 @@
         <div class="event-main">
 
 
+
             <div class="date-box">
 
 
                 <div class="day">
-                    {{ getDay(event.date) }}
+                    {{ getDay(event.startDate || event.date) }}
                 </div>
 
 
                 <div class="month">
-                    {{ getMonth(event.date) }}
+                    {{ getMonth(event.startDate || event.date) }}
                 </div>
 
 
@@ -67,7 +75,10 @@
 
 
 
+
+
             <div class="event-info">
+
 
 
                 @if(isToday()) {
@@ -80,11 +91,18 @@
 
 
 
-                <p class="time">
-                    <span>
-                        🕒 {{ event.startTime }}
-                    </span>
+                @if(getDateRangeLabel(); as dateRange) {
+                <p class="date-range">
+                    📅 {{ dateRange }}
                 </p>
+                }
+
+                @if(event.startTime) {
+                <p class="time">
+                    <span>🕒 {{ event.startTime }}</span>
+                </p>
+                }
+
 
 
 
@@ -97,6 +115,9 @@
                 }
 
 
+
+
+
                 @if(event.notes) {
 
                 <p>
@@ -106,14 +127,19 @@
                 }
 
 
+
             </div>
+
 
 
         </div>
 
 
 
+
+
         @if(event.author) {
+
 
         <div class="author">
 
@@ -121,10 +147,13 @@
 
         </div>
 
+
         }
 
 
+
     </mat-card-content>
+
 
 
 </mat-card>

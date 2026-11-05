@@ -5,31 +5,47 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { EventService } from '../../../../core/services/event.services';
 import { CurrentUser } from '../../../../core/services/current-user';
+import { FriendshipService } from '../../../../core/services/friendship';
+import { UserService } from '../../../../core/services/user';
+
+import { User } from '../../../../core/models/user';
+import { EventVisibility } from '../../../../core/models/event.model';
+
 
 @Component({
   selector: 'app-new-event',
+  standalone: true,
   imports: [
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatSelectModule,
+    MatCheckboxModule
   ],
   templateUrl: './new-event.html',
   styleUrl: './new-event.scss',
 })
 export class NewEvent {
 
+
   private fb = inject(FormBuilder);
 
   private eventService = inject(EventService);
 
   private currentUser = inject(CurrentUser);
+
+  private friendshipService = inject(FriendshipService);
+
+  private userService = inject(UserService);
 
   private snackBar = inject(MatSnackBar);
 
@@ -38,9 +54,16 @@ export class NewEvent {
   private route = inject(ActivatedRoute);
 
 
+
   isEditMode = false;
 
+  canEdit = false;
+
   private eventId?: string;
+
+
+  friends: User[] = [];
+
 
 
 
@@ -51,13 +74,18 @@ export class NewEvent {
       Validators.required
     ],
 
-    date: [
+    startDate: [
+      '',
+      Validators.required
+    ],
+
+    endDate: [
       '',
       Validators.required
     ],
 
     startTime: [
-      '',
+      ''
     ],
 
     location: [
@@ -66,42 +94,67 @@ export class NewEvent {
 
     notes: [
       ''
+    ],
+
+    visibility: [
+      'all' as EventVisibility,
+      Validators.required
+    ],
+
+    visibleTo: [
+      [] as string[]
     ]
 
   });
 
 
 
+
+
+
   constructor() {
 
-    const params = this.route.snapshot.queryParamMap;
 
-    const eventId = params.get('id');
+    this.loadFriends();
 
+
+
+    const params =
+      this.route.snapshot.queryParamMap;
+
+
+
+    const eventId =
+      params.get('id');
 
     if (eventId) {
-
-      this.isEditMode = true;
-
-      this.eventId = eventId;
 
       this.loadEvent(eventId);
 
     }
     else {
 
-      const date = params.get('date');
+
+      const date =
+        params.get('date');
 
 
       if (date) {
 
         this.eventForm.patchValue({
-          date
+          startDate: date,
+          endDate: date
         });
 
       }
 
+
+      // nuovo evento
+      this.canEdit = true;
+
+
     }
+
 
   }
 
@@ -109,51 +162,14 @@ export class NewEvent {
 
 
 
-  private loadEvent(id: string) {
-
-    this.eventService.getEventById(id)
-      .subscribe(event => {
-
-        if (!event) {
-          return;
-        }
-
-
-        this.eventForm.patchValue({
-
-          title: event.title,
-
-          date: event.date,
-
-          startTime: event.startTime,
-
-          location: event.location,
-
-          notes: event.notes
-
-        });
-
-      });
-
-  }
 
 
 
+  private async loadFriends() {
 
 
-  async saveEvent() {
-
-
-    if (this.eventForm.invalid) {
-
-      return;
-
-    }
-
-
-
-
-    let user = this.currentUser.currentUser;
+    let user =
+      this.currentUser.currentUser;
 
 
 
@@ -163,18 +179,214 @@ export class NewEvent {
         setTimeout(resolve, 100)
       );
 
-      user = this.currentUser.currentUser;
+
+      user =
+        this.currentUser.currentUser;
 
     }
 
 
 
 
-    if (!user) {
-
-      console.error(
-        'Current user not available'
+    const friendIds =
+      await this.friendshipService.getFriends(
+        user.uid
       );
+
+
+
+
+    const resolvedFriends =
+      await Promise.all(
+
+        friendIds.map(uid =>
+          this.userService.getUserById(uid)
+        )
+
+      );
+
+
+
+
+    this.friends =
+      resolvedFriends.filter(
+        (friend): friend is User =>
+          !!friend
+      );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  toggleFriendVisibility(uid: string) {
+
+
+    const current =
+      this.eventForm.value.visibleTo ?? [];
+
+
+
+    if (current.includes(uid)) {
+
+
+      this.eventForm.patchValue({
+
+        visibleTo:
+          current.filter(
+            id => id !== uid
+          )
+
+      });
+
+
+    }
+    else {
+
+
+      this.eventForm.patchValue({
+
+        visibleTo: [
+          ...current,
+          uid
+        ]
+
+      });
+
+
+    }
+
+
+  }
+
+
+
+
+
+
+
+
+
+  isFriendSelected(uid: string): boolean {
+
+
+    return (
+      this.eventForm.value.visibleTo ?? []
+    )
+      .includes(uid);
+
+
+  }
+
+
+
+
+
+
+
+
+  private loadEvent(id: string) {
+
+    this.eventService
+      .getEventById(id)
+      .subscribe(event => {
+
+
+        if (!event) {
+          return;
+        }
+
+
+        const currentUid =
+          this.currentUser.currentUser?.uid;
+
+
+        // evento di un amico: torno indietro
+        if (event.authorId !== currentUid) {
+
+          this.router.navigate(['/calendar']);
+
+          return;
+
+        }
+
+
+        this.isEditMode = true;
+        this.canEdit = true;
+
+        this.eventId = id;
+
+
+        this.eventForm.patchValue({
+
+          title: event.title,
+          startDate: event.startDate ?? event.date,
+          endDate: event.endDate ?? event.startDate ?? event.date,
+          startTime: event.startTime,
+          location: event.location,
+          notes: event.notes,
+          visibility: event.visibility ?? 'all',
+          visibleTo: event.visibleTo ?? []
+
+        });
+
+
+      });
+
+  }
+
+
+
+
+
+
+
+  /** Quando cambia la data iniziale, propone la stessa data come fine. */
+  onStartDateChange() {
+
+    const startDate = this.eventForm.controls.startDate.value;
+
+    this.eventForm.controls.endDate.setValue(startDate ?? '');
+
+  }
+
+
+  isDateRangeInvalid(): boolean {
+
+    const startDate = this.eventForm.controls.startDate.value;
+    const endDate = this.eventForm.controls.endDate.value;
+
+    return !!startDate && !!endDate && endDate < startDate;
+
+  }
+
+
+  async saveEvent() {
+
+
+
+    if (this.isEditMode && !this.canEdit) {
+
+
+      this.showMessage(
+        'Non puoi modificare questo evento'
+      );
+
+
+      return;
+
+    }
+
+
+
+
+    if (this.eventForm.invalid || this.isDateRangeInvalid()) {
 
       return;
 
@@ -184,25 +396,119 @@ export class NewEvent {
 
 
 
+
+    let user =
+      this.currentUser.currentUser;
+
+
+
+    while (!user) {
+
+
+      await new Promise(resolve =>
+        setTimeout(resolve, 100)
+      );
+
+
+      user =
+        this.currentUser.currentUser;
+
+
+    }
+
+
+
+
+
+
+    if (!user) {
+
+
+      console.error(
+        'Current user not available'
+      );
+
+
+      return;
+
+
+    }
+
+
+
+
+
+
+
+    const startDate = this.eventForm.value.startDate!;
+    const endDate = this.eventForm.value.endDate!;
+
     const event = {
-      authorId: user.uid,
 
-      title: this.eventForm.value.title!,
 
-      date: this.eventForm.value.date!,
+      authorId:
+        user.uid,
 
-      startTime: this.eventForm.value.startTime ?? '',
 
-      location: this.eventForm.value.location ?? '',
 
-      notes: this.eventForm.value.notes ?? ''
+      title:
+        this.eventForm.value.title!,
+
+
+
+      // 'date' resta valorizzato per compatibilità con le vecchie versioni.
+      date: startDate,
+
+      startDate,
+
+      endDate,
+
+
+
+      startTime:
+        this.eventForm.value.startTime ?? '',
+
+
+
+      location:
+        this.eventForm.value.location ?? '',
+
+
+
+      notes:
+        this.eventForm.value.notes ?? '',
+
+
+
+      visibility:
+        this.eventForm.value.visibility as EventVisibility,
+
+
+
+      visibleTo:
+        this.eventForm.value.visibility === 'selected'
+
+          ?
+          (
+            this.eventForm.value.visibleTo ?? []
+          )
+
+          :
+          []
+
+
+
     };
 
 
 
 
 
+
+
+
     if (this.isEditMode && this.eventId) {
+
 
 
       await this.eventService.update(
@@ -214,6 +520,7 @@ export class NewEvent {
       );
 
 
+
       this.showMessage(
         'Evento aggiornato'
       );
@@ -223,7 +530,11 @@ export class NewEvent {
     else {
 
 
-      await this.eventService.create(event);
+
+      await this.eventService.create(
+        event
+      );
+
 
 
       this.showMessage(
@@ -234,7 +545,9 @@ export class NewEvent {
     }
 
 
-    this.eventForm.reset();
+
+
+
 
 
   }
@@ -244,28 +557,38 @@ export class NewEvent {
 
 
 
+
+
+
   private showMessage(message: string) {
 
 
-    const snackBarRef = this.snackBar.open(
+    const snackBarRef =
+      this.snackBar.open(
 
-      message,
+        message,
 
-      'OK',
+        'OK',
 
-      {
-        duration: 1000
-      }
+        {
+          duration: 1000
+        }
 
-    );
+      );
 
 
 
-    snackBarRef.afterDismissed().subscribe(() => {
+    snackBarRef
+      .afterDismissed()
+      .subscribe(() => {
 
-      this.router.navigate(['/home']);
 
-    });
+        this.router.navigate([
+          '/home'
+        ]);
+
+
+      });
 
 
   }

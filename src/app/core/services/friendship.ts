@@ -94,8 +94,36 @@ export class FriendshipService {
         }));
     }
 
+        
     async getFriends(userId: string): Promise<string[]> {
-        const snap = await getDoc(doc(this.firestore, 'users', userId));
-        return (snap.data()?.['friends'] ?? []) as string[];
+        const friendshipsRef = collection(this.firestore, 'friendships');
+
+        const [sent, received] = await Promise.all([
+            getDocs(query(
+                friendshipsRef,
+                where('requesterId', '==', userId),
+                where('status', '==', 'accepted')
+            )),
+            getDocs(query(
+                friendshipsRef,
+                where('addresseeId', '==', userId),
+                where('status', '==', 'accepted')
+            ))
+        ]);
+
+        const friendIds = new Set<string>();
+
+        sent.docs.forEach(friendship => {
+            const data = friendship.data();
+            friendIds.add(data['addresseeId']);
+        });
+
+        received.docs.forEach(friendship => {
+            const data = friendship.data();
+            friendIds.add(data['requesterId']);
+        });
+
+        return Array.from(friendIds);
     }
+
 }
