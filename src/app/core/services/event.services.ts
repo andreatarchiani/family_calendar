@@ -57,16 +57,16 @@ export class EventService {
             .filter(uid => !!uid && uid !== currentUserId)
             .slice(0, 30);
 
-          if (uniqueFriendIds.length) {
+          for (const friendId of uniqueFriendIds) {
             const allQuery = query(
               this.eventsCollection,
-              where('authorId', 'in', uniqueFriendIds),
+              where('authorId', '==', friendId),
               where('visibility', '==', 'all')
             );
 
             const selectedQuery = query(
               this.eventsCollection,
-              where('authorId', 'in', uniqueFriendIds),
+              where('authorId', '==', friendId),
               where('visibility', '==', 'selected'),
               where('visibleTo', 'array-contains', currentUserId)
             );
