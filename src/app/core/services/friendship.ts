@@ -7,7 +7,6 @@ import {
   getDocs,
   query,
   runTransaction,
-  updateDoc,
   where,
   arrayUnion
 } from '@angular/fire/firestore';
