@@ -1,0 +1,191 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function friendshipDoc(a, b) {
+      return /databases/$(database)/documents/friendships/$(a + '__' + b);
+    }
+
+    function hasPendingOrAcceptedRelation(userId) {
+      let outgoing = friendshipDoc(request.auth.uid, userId);
+      let incoming = friendshipDoc(userId, request.auth.uid);
+      return (
+        (exists(outgoing) &&
+          get(outgoing).data.status in ['pending', 'accepted'])
+        ||
+        (exists(incoming) &&
+          get(incoming).data.status in ['pending', 'accepted'])
+      );
+    }
+
+    function hasAcceptedFriendship(userId) {
+      let outgoing = friendshipDoc(request.auth.uid, userId);
+      let incoming = friendshipDoc(userId, request.auth.uid);
+      return (
+        (exists(outgoing) && get(outgoing).data.status == 'accepted')
+        ||
+        (exists(incoming) && get(incoming).data.status == 'accepted')
+      );
+    }
+
+    function canReadUser(userId) {
+      return signedIn() && (
+        request.auth.uid == userId ||
+        hasPendingOrAcceptedRelation(userId)
+      );
+    }
+
+    function validFriendCode(code) {
+      return code is string && code.matches('^[0-9]{6}$');
+    }
+
+    function friendListChangeIsValid(userId) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
+        && request.resource.data.friends is list
+        && request.resource.data.friends.hasAll(resource.data.friends)
+        && request.resource.data.friends.hasAny([request.auth.uid])
+        && getAfter(friendshipDoc(userId, request.auth.uid)).data.status == 'accepted'
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
+            && request.resource.data.friends is list
+            && request.resource.data.friends.hasAll(resource.data.friends)
+            && request.resource.data.friends.hasAny([request.auth.uid])
+            && getAfter(friendshipDoc(request.auth.uid, userId)).data.status == 'accepted'
+          );
+    }
+
+    match /users/{userId} {
+      allow get: if canReadUser(userId);
+      allow list: if false;
+
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && validFriendCode(request.resource.data.friendCode)
+        && getAfter(/databases/$(database)/documents/friendCodes/$(request.resource.data.friendCode)).data.uid == userId;
+
+      allow update: if signedIn()
+        && (
+          (
+            request.auth.uid == userId
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['friends'])
+          )
+          ||
+          (
+            request.auth.uid == userId
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
+            && request.resource.data.friends is list
+            && request.resource.data.friends.hasAll(resource.data.friends)
+            && request.resource.data.friends.hasAny([request.auth.uid])
+          )
+          ||
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
+            && request.resource.data.friends is list
+            && request.resource.data.friends.hasAll(resource.data.friends)
+            && request.resource.data.friends.hasAny([request.auth.uid])
+            && (
+              getAfter(friendshipDoc(userId, request.auth.uid)).data.status == 'accepted'
+              || getAfter(friendshipDoc(request.auth.uid, userId)).data.status == 'accepted'
+            )
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    match /friendCodes/{code} {
+      allow get: if signedIn() && validFriendCode(code);
+      allow list: if false;
+
+      allow create: if signedIn()
+        && validFriendCode(code)
+        && request.resource.data.uid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.friendCode == code;
+
+      allow update, delete: if false;
+    }
+
+    match /friendships/{friendshipId} {
+      allow get, list: if signedIn()
+        && (
+          resource.data.requesterId == request.auth.uid
+          || resource.data.addresseeId == request.auth.uid
+        );
+
+      allow create: if signedIn()
+        && friendshipId == request.resource.data.requesterId + '__' + request.resource.data.addresseeId
+        && request.resource.data.requesterId == request.auth.uid
+        && request.resource.data.addresseeId is string
+        && request.resource.data.addresseeId != request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt is number
+        && exists(/databases/$(database)/documents/users/$(request.resource.data.addresseeId));
+
+      allow update: if signedIn()
+        && (
+          (
+            resource.data.addresseeId == request.auth.uid
+            && resource.data.status == 'pending'
+            && request.resource.data.status in ['accepted', 'declined']
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+          )
+          ||
+          (
+            resource.data.requesterId == request.auth.uid
+            && resource.data.status == 'declined'
+            && request.resource.data.status == 'pending'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'createdAt'])
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    match /events/{eventId} {
+      function canReadEvent() {
+        return signedIn() && (
+          resource.data.authorId == request.auth.uid
+          ||
+          (
+            hasAcceptedFriendship(resource.data.authorId)
+            && (
+              resource.data.visibility == 'all'
+              ||
+              (
+                resource.data.visibility == 'selected'
+                && resource.data.visibleTo is list
+                && resource.data.visibleTo.hasAny([request.auth.uid])
+              )
+            )
+          )
+        );
+      }
+
+      allow get, list: if canReadEvent();
+
+      allow create: if signedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.visibility in ['all', 'none', 'selected']
+        && request.resource.data.visibleTo is list;
+
+      allow update: if signedIn()
+        && resource.data.authorId == request.auth.uid
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.visibility in ['all', 'none', 'selected']
+        && request.resource.data.visibleTo is list;
+
+      allow delete: if signedIn()
+        && resource.data.authorId == request.auth.uid;
+    }
+
+    match /userPreferences/{userId} {
+      allow read, write: if signedIn()
+        && request.auth.uid == userId;
+    }
+  }
+}
