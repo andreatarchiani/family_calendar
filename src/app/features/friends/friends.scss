@@ -135,3 +135,35 @@
     padding: 10px;
   }
 }
+
+
+.friend-code-card > p {
+  margin: -6px 0 16px;
+  line-height: 1.5;
+}
+
+.my-code-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.my-code {
+  font-size: 30px;
+  letter-spacing: 5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.my-code-row button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 600px) {
+  .my-code {
+    font-size: 26px;
+  }
+}
