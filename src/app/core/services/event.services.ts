@@ -1,5 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-
 import {
   Firestore,
   collection,
@@ -12,18 +11,15 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  where
+  where,
+  getDocs
 } from '@angular/fire/firestore';
 
-import { Observable, map } from 'rxjs';
-
+import { Observable, combineLatest, defer, from, map, switchMap } from 'rxjs';
 import { Event } from '../models/event.model';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class EventService {
-
   private firestore = inject(Firestore);
 
   private eventsCollection: CollectionReference = collection(
@@ -39,102 +35,104 @@ export class EventService {
   }
 
   /**
-   * Restituisce gli eventi che l'utente può vedere:
-   * - i propri eventi, sempre;
-   * - gli eventi degli amici con visibility 'all';
-   * - gli eventi degli amici con visibility 'selected' se il suo UID
-   *   è presente in visibleTo.
-   *
-   * Gli eventi precedenti che non hanno il campo visibility vengono
-   * considerati visibili a tutti gli amici, per compatibilità.
+   * Prima converte gli eventi legacy dell'utente corrente (senza visibility)
+   * in eventi visibility='all'. Poi ascolta query separate: propri eventi,
+   * eventi degli amici condivisi con tutti e eventi selezionati per l'utente.
+   * In questo modo le query includono già i vincoli richiesti dalle regole.
    */
   getVisibleEvents(currentUserId: string, friendIds: string[]): Observable<Event[]> {
-    const authorIds = [currentUserId, ...friendIds];
+    return defer(() =>
+      from(this.migrateLegacyEvents(currentUserId)).pipe(
+        switchMap(() => {
+          const ownQuery = query(
+            this.eventsCollection,
+            where('authorId', '==', currentUserId)
+          );
 
-    // Firestore consente al massimo 30 valori in una query "in".
-    // È ampiamente sufficiente per il calendario familiare.
-    const eventsQuery = query(
-      this.eventsCollection,
-      where('authorId', 'in', authorIds.slice(0, 30))
-    );
+          const streams: Observable<Event[]>[] = [
+            collectionData(ownQuery, { idField: 'id' }) as Observable<Event[]>
+          ];
 
-    return collectionData(
-      eventsQuery,
-      { idField: 'id' }
-    ).pipe(
-      map(events =>
-        (events as Event[]).filter(event => {
-          if (event.authorId === currentUserId) {
-            return true;
+          const uniqueFriendIds = [...new Set(friendIds)]
+            .filter(uid => !!uid && uid !== currentUserId)
+            .slice(0, 30);
+
+          if (uniqueFriendIds.length) {
+            const allQuery = query(
+              this.eventsCollection,
+              where('authorId', 'in', uniqueFriendIds),
+              where('visibility', '==', 'all')
+            );
+
+            const selectedQuery = query(
+              this.eventsCollection,
+              where('authorId', 'in', uniqueFriendIds),
+              where('visibility', '==', 'selected'),
+              where('visibleTo', 'array-contains', currentUserId)
+            );
+
+            streams.push(
+              collectionData(allQuery, { idField: 'id' }) as Observable<Event[]>,
+              collectionData(selectedQuery, { idField: 'id' }) as Observable<Event[]>
+            );
           }
 
-          const visibility = event.visibility ?? 'all';
-
-          if (visibility === 'all') {
-            return true;
-          }
-
-          if (visibility === 'none') {
-            return false;
-          }
-
-          return (event.visibleTo ?? []).includes(currentUserId);
+          return combineLatest(streams).pipe(
+            map(groups => {
+              const byId = new Map<string, Event>();
+              groups.flat().forEach(event => byId.set(event.id, event));
+              return Array.from(byId.values());
+            })
+          );
         })
       )
     );
   }
 
-  getEventById(id: string): Observable<Event | undefined> {
-    const eventDoc = doc(
-      this.firestore,
-      `events/${id}`
+  private async migrateLegacyEvents(userId: string): Promise<void> {
+    const ownEvents = await getDocs(query(
+      this.eventsCollection,
+      where('authorId', '==', userId)
+    ));
+
+    const legacyEvents = ownEvents.docs.filter(
+      snapshot => !snapshot.data()['visibility']
     );
 
-    return docData(
-      eventDoc,
-      { idField: 'id' }
-    ) as Observable<Event | undefined>;
+    await Promise.all(legacyEvents.map(snapshot =>
+      updateDoc(snapshot.ref, {
+        visibility: 'all',
+        visibleTo: []
+      })
+    ));
+  }
+
+  getEventById(id: string): Observable<Event | undefined> {
+    const eventDoc = doc(this.firestore, `events/${id}`);
+    return docData(eventDoc, { idField: 'id' }) as Observable<Event | undefined>;
   }
 
   async create(
     event: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<string> {
-    const docRef = await addDoc(
-      this.eventsCollection,
-      {
-        ...event,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      }
-    );
+    const docRef = await addDoc(this.eventsCollection, {
+      ...event,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
 
     return docRef.id;
   }
 
-  async update(
-    id: string,
-    event: Partial<Event>
-  ): Promise<void> {
-    const eventDoc = doc(
-      this.firestore,
-      `events/${id}`
-    );
-
-    await updateDoc(
-      eventDoc,
-      {
-        ...event,
-        updatedAt: serverTimestamp()
-      }
-    );
+  async update(id: string, event: Partial<Event>): Promise<void> {
+    const eventDoc = doc(this.firestore, `events/${id}`);
+    await updateDoc(eventDoc, {
+      ...event,
+      updatedAt: serverTimestamp()
+    });
   }
 
   async delete(id: string): Promise<void> {
-    const eventDoc = doc(
-      this.firestore,
-      `events/${id}`
-    );
-
-    await deleteDoc(eventDoc);
+    await deleteDoc(doc(this.firestore, `events/${id}`));
   }
 }
