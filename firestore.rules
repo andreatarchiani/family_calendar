@@ -11,30 +11,26 @@ service cloud.firestore {
       return /databases/$(database)/documents/friendships/$(a + '__' + b);
     }
 
-    function hasPendingOrAcceptedRelation(userId) {
-      let outgoing = friendshipDoc(request.auth.uid, userId);
-      let incoming = friendshipDoc(userId, request.auth.uid);
-      return (
-        (exists(outgoing) &&
-          get(outgoing).data.status in ['pending', 'accepted'])
-        ||
-        (exists(incoming) &&
-          get(incoming).data.status in ['pending', 'accepted'])
-      );
-    }
-
     function hasAcceptedFriendship(userId) {
       let outgoing = friendshipDoc(request.auth.uid, userId);
       let incoming = friendshipDoc(userId, request.auth.uid);
+      let targetProfile = /databases/$(database)/documents/users/$(userId);
+      let currentProfile = /databases/$(database)/documents/users/$(request.auth.uid);
       return (
         (exists(outgoing) && get(outgoing).data.status == 'accepted')
         ||
         (exists(incoming) && get(incoming).data.status == 'accepted')
         ||
         (
-          exists(/databases/$(database)/documents/users/$(request.auth.uid))
-          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends is list
-          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends.hasAny([userId])
+          exists(targetProfile)
+          && get(targetProfile).data.friends is list
+          && get(targetProfile).data.friends.hasAny([request.auth.uid])
+        )
+        ||
+        (
+          exists(currentProfile)
+          && get(currentProfile).data.friends is list
+          && get(currentProfile).data.friends.hasAny([userId])
         )
       );
     }
@@ -42,12 +38,7 @@ service cloud.firestore {
     function canReadUser(userId) {
       return signedIn() && (
         request.auth.uid == userId ||
-        hasPendingOrAcceptedRelation(userId) ||
-        (
-          exists(/databases/$(database)/documents/users/$(request.auth.uid))
-          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends is list
-          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends.hasAny([userId])
-        )
+        hasAcceptedFriendship(userId)
       );
     }
 
@@ -77,8 +68,9 @@ service cloud.firestore {
           )
           ||
           (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends', 'lastAcceptedFriendshipId'])
             && request.resource.data.friends is list
+            && request.resource.data.lastAcceptedFriendshipId is string
             && (
               (
                 resource.data.friends is list
@@ -90,7 +82,9 @@ service cloud.firestore {
                 && request.resource.data.friends == [request.auth.uid]
               )
             )
-            && getAfter(friendshipDoc(userId, request.auth.uid)).data.status == 'accepted'
+            && getAfter(/databases/$(database)/documents/friendships/$(request.resource.data.lastAcceptedFriendshipId)).data.status == 'accepted'
+            && getAfter(/databases/$(database)/documents/friendships/$(request.resource.data.lastAcceptedFriendshipId)).data.requesterId == userId
+            && getAfter(/databases/$(database)/documents/friendships/$(request.resource.data.lastAcceptedFriendshipId)).data.addresseeId == request.auth.uid
           )
         );
 
@@ -120,6 +114,7 @@ service cloud.firestore {
         && request.resource.data.addresseeId is string
         && request.resource.data.addresseeId != request.auth.uid
         && request.resource.data.status == 'pending'
+        && request.resource.data.requesterName is string
         && request.resource.data.createdAt is number
         && exists(/databases/$(database)/documents/users/$(request.resource.data.addresseeId));
 
@@ -136,7 +131,7 @@ service cloud.firestore {
             resource.data.requesterId == request.auth.uid
             && resource.data.status == 'declined'
             && request.resource.data.status == 'pending'
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'createdAt'])
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'createdAt', 'requesterName'])
           )
         );
 
