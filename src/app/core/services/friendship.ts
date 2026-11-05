@@ -17,13 +17,14 @@ export interface Friendship {
   addresseeId: string;
   status: 'pending' | 'accepted' | 'declined';
   createdAt: number;
+  requesterName?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class FriendshipService {
   private firestore = inject(Firestore);
 
-  async sendRequest(requesterId: string, addresseeId: string) {
+  async sendRequest(requesterId: string, addresseeId: string, requesterName: string) {
     if (!requesterId || !addresseeId || requesterId === addresseeId) return null;
 
     const requestRef = doc(
@@ -59,6 +60,7 @@ export class FriendshipService {
         requesterId,
         addresseeId,
         status: 'pending',
+        requesterName,
         createdAt: Date.now()
       });
 
@@ -79,16 +81,15 @@ export class FriendshipService {
       }
 
       const requesterRef = doc(this.firestore, 'users', data.requesterId);
-      const requesterSnapshot = await transaction.get(requesterRef);
-
-      if (!requesterSnapshot.exists()) {
-        throw new Error('Profilo del richiedente non trovato.');
-      }
 
       transaction.update(requestRef, { status: 'accepted' });
-      // Aggiorniamo solo il profilo del richiedente: l'altro lato ricava
-      // l'amicizia dalla relazione accettata, senza scrivere sul profilo altrui.
-      transaction.update(requesterRef, { friends: arrayUnion(data.addresseeId) });
+      // Il profilo del richiedente viene aggiornato nella stessa transazione.
+      // Il riferimento alla richiesta permette alle regole di verificare
+      // anche le richieste legacy con ID non deterministici.
+      transaction.update(requesterRef, {
+        friends: arrayUnion(data.addresseeId),
+        lastAcceptedFriendshipId: requestId
+      });
     });
   }
 
