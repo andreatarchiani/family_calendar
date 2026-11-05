@@ -30,13 +30,24 @@ service cloud.firestore {
         (exists(outgoing) && get(outgoing).data.status == 'accepted')
         ||
         (exists(incoming) && get(incoming).data.status == 'accepted')
+        ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends is list
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends.hasAny([userId])
+        )
       );
     }
 
     function canReadUser(userId) {
       return signedIn() && (
         request.auth.uid == userId ||
-        hasPendingOrAcceptedRelation(userId)
+        hasPendingOrAcceptedRelation(userId) ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends is list
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends.hasAny([userId])
+        )
       );
     }
 
@@ -73,14 +84,6 @@ service cloud.firestore {
           (
             request.auth.uid == userId
             && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['friends'])
-          )
-          ||
-          (
-            request.auth.uid == userId
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
-            && request.resource.data.friends is list
-            && request.resource.data.friends.hasAll(resource.data.friends)
-            && request.resource.data.friends.hasAny([request.auth.uid])
           )
           ||
           (
