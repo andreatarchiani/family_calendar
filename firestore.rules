@@ -74,6 +74,9 @@ service cloud.firestore {
               (
                 resource.data.friends is list
                 && request.resource.data.friends.hasAll(resource.data.friends)
+                && request.resource.data.friends.size() == resource.data.friends.size() + 1
+                && request.resource.data.friends.hasAny([request.auth.uid])
+                && !resource.data.friends.hasAny([request.auth.uid])
               )
               ||
               (
@@ -148,6 +151,20 @@ service cloud.firestore {
     }
 
     match /events/{eventId} {
+      function validVisibleTo() {
+        return request.resource.data.visibleTo is list
+          && (
+            request.resource.data.visibility != 'selected'
+            || (
+              exists(/databases/$(database)/documents/users/$(request.auth.uid))
+              && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends is list
+              && request.resource.data.visibleTo.hasOnly(
+                get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends
+              )
+            )
+          );
+      }
+
       function canReadEvent() {
         return signedIn() && (
           resource.data.authorId == request.auth.uid
@@ -172,13 +189,13 @@ service cloud.firestore {
       allow create: if signedIn()
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.visibility in ['all', 'none', 'selected']
-        && request.resource.data.visibleTo is list;
+        && validVisibleTo();
 
       allow update: if signedIn()
         && resource.data.authorId == request.auth.uid
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.visibility in ['all', 'none', 'selected']
-        && request.resource.data.visibleTo is list;
+        && validVisibleTo();
 
       allow delete: if signedIn()
         && resource.data.authorId == request.auth.uid;
