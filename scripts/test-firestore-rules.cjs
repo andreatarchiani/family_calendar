@@ -206,6 +206,13 @@ async function main() {
     await test('Un amico legge un evento selezionato per lui', () =>
       assertSucceeds(getDoc(doc(bob, 'events/selected-bob'))));
 
+    await test('Un amico legge eventi condivisi all tramite query', () =>
+      assertSucceeds(getDocs(query(
+        collection(bob, 'events'),
+        where('authorId', '==', 'alice'),
+        where('visibility', '==', 'all')
+      ))));
+
     await test('Un amico legge eventi selected tramite query con array-contains', () =>
       assertSucceeds(getDocs(query(
         collection(bob, 'events'),
