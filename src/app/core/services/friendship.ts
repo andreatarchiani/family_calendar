@@ -125,18 +125,33 @@ export class FriendshipService {
   async getFriends(userId: string): Promise<string[]> {
     const friendships = collection(this.firestore, 'friendships');
 
-    const [sent, received] = await Promise.all([
-      getDocs(query(
+    console.log('[FC FRIENDS] Avvio query amicizie in uscita', userId);
+    let sent;
+    try {
+      sent = await getDocs(query(
         friendships,
         where('requesterId', '==', userId),
         where('status', '==', 'accepted')
-      )),
-      getDocs(query(
+      ));
+      console.log('[FC FRIENDS] Query uscita completata', sent.size);
+    } catch (error) {
+      console.error('[FC FRIENDS] ERRORE query amicizie in uscita', error);
+      throw error;
+    }
+
+    console.log('[FC FRIENDS] Avvio query amicizie in entrata', userId);
+    let received;
+    try {
+      received = await getDocs(query(
         friendships,
         where('addresseeId', '==', userId),
         where('status', '==', 'accepted')
-      ))
-    ]);
+      ));
+      console.log('[FC FRIENDS] Query entrata completata', received.size);
+    } catch (error) {
+      console.error('[FC FRIENDS] ERRORE query amicizie in entrata', error);
+      throw error;
+    }
 
     const ids = new Set<string>();
     sent.docs.forEach(item => ids.add(item.data()['addresseeId']));
