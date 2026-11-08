@@ -208,8 +208,8 @@ service cloud.firestore {
               ||
               (
                 resource.data.visibility == 'selected'
-                && resource.data.visibleTo is list
-                && request.auth.uid in resource.data.visibleTo
+                && resource.data.visibleToMap is map
+                && resource.data.visibleToMap[request.auth.uid] == true
               )
             )
           )
