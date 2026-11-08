@@ -130,7 +130,7 @@ export class EventService {
     try {
       await Promise.all(eventsToMigrate.map(snapshot => {
         const data = snapshot.data();
-        const updates: Record<string, unknown> = {};
+        const updates: Record<string, any> = {};
 
         if (!data['visibility']) {
           updates['visibility'] = 'all';
