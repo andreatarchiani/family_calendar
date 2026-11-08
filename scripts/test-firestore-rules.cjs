@@ -190,6 +190,7 @@ async function main() {
     const stranger = env.authenticatedContext('stranger').firestore();
     const anonymous = env.unauthenticatedContext().firestore();
     const eventAlice = env.authenticatedContext('eventAlice').firestore();
+    const eventAliceNoFriends = env.authenticatedContext('eventAliceNoFriends').firestore();
     const eventBob = env.authenticatedContext('eventBob').firestore();
     const legacyViewer = env.authenticatedContext('legacyViewer').firestore();
 
@@ -224,7 +225,7 @@ async function main() {
       assertSucceeds(getDoc(doc(bob, 'events/selected-bob'))));
 
     await test('Il proprietario può completare la migrazione visibleToMap anche se il profilo friends non è sincronizzato', () =>
-      assertSucceeds(updateDoc(doc(eventAlice, 'events/eventAliceNoFriends-legacy-selected'), {
+      assertSucceeds(updateDoc(doc(eventAliceNoFriends, 'events/eventAliceNoFriends-legacy-selected'), {
         visibleToMap: { eventBob: true }
       })));
 
