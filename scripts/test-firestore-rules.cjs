@@ -413,7 +413,8 @@ async function main() {
     await test('Alice puo modificare un proprio evento', () =>
       assertSucceeds(updateDoc(doc(alice, 'events/private'), {
         visibility: 'selected',
-        visibleTo: ['bob']
+        visibleTo: ['bob'],
+        visibleToMap: { bob: true }
       })));
 
     await test('Alice puo cancellare un proprio evento', () =>
@@ -422,53 +423,61 @@ async function main() {
       assertSucceeds(setDoc(doc(alice, 'events/share-accepted'), {
         authorId: 'alice',
         visibility: 'selected',
-        visibleTo: ['bob']
+        visibleTo: ['bob'],
+        visibleToMap: { bob: true }
       })));
 
     await test('Non si puo condividere con un utente con richiesta pending', () =>
       assertFails(setDoc(doc(bob, 'events/share-pending'), {
         authorId: 'bob',
         visibility: 'selected',
-        visibleTo: ['carol']
+        visibleTo: ['carol'],
+        visibleToMap: { carol: true }
       })));
 
     await test('Non si puo condividere con un utente senza amicizia', () =>
       assertFails(setDoc(doc(eventAlice, 'events/share-stranger-original'), {
         authorId: 'eventAlice',
         visibility: 'selected',
-        visibleTo: ['eventCarol']
+        visibleTo: ['eventCarol'],
+        visibleToMap: { eventCarol: true }
       })));
     await test('Creazione: condivisione con amico accettato consentita', () =>
       assertSucceeds(setDoc(doc(eventAlice, 'events/eventAlice-share-accepted'), {
         authorId: 'eventAlice',
         visibility: 'selected',
-        visibleTo: ['eventBob']
+        visibleTo: ['eventBob'],
+        visibleToMap: { eventBob: true }
       })));
 
     await test('Creazione: condivisione con amicizia pending vietata', () =>
       assertFails(setDoc(doc(eventBob, 'events/share-pending'), {
         authorId: 'eventBob',
         visibility: 'selected',
-        visibleTo: ['eventCarol']
+        visibleTo: ['eventCarol'],
+        visibleToMap: { eventCarol: true }
       })));
 
     await test('Creazione: condivisione senza amicizia vietata', () =>
       assertFails(setDoc(doc(eventAlice, 'events/share-stranger'), {
         authorId: 'eventAlice',
         visibility: 'selected',
-        visibleTo: ['eventCarol']
+        visibleTo: ['eventCarol'],
+        visibleToMap: { eventCarol: true }
       })));
 
     await test('Modifica: condivisione con amico accettato consentita', () =>
       assertSucceeds(updateDoc(doc(eventAlice, 'events/eventAlice-update-valid'), {
         visibility: 'selected',
-        visibleTo: ['eventBob']
+        visibleTo: ['eventBob'],
+        visibleToMap: { eventBob: true }
       })));
 
     await test('Modifica: condivisione con utente non amico vietata', () =>
       assertFails(updateDoc(doc(eventAlice, 'events/eventAlice-update-invalid'), {
         visibility: 'selected',
-        visibleTo: ['eventCarol']
+        visibleTo: ['eventCarol'],
+        visibleToMap: { eventCarol: true }
       })));
   } finally {
     await env.cleanup();
