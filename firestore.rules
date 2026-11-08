@@ -193,6 +193,9 @@ service cloud.firestore {
               && request.resource.data.visibleTo.hasOnly(
                 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends
               )
+              && request.resource.data.visibleToMap is map
+              && request.resource.data.visibleToMap.keys().hasOnly(request.resource.data.visibleTo)
+              && request.resource.data.visibleToMap.keys().size() == request.resource.data.visibleTo.size()
             )
           );
       }
