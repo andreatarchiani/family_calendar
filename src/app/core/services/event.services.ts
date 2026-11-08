@@ -73,7 +73,7 @@ export class EventService {
               this.eventsCollection,
               where('authorId', '==', friendId),
               where('visibility', '==', 'selected'),
-              where('visibleTo', 'array-contains', currentUserId)
+              where(`visibleToMap.${currentUserId}`, '==', true)
             );
 
             streams.push(
@@ -117,18 +117,37 @@ export class EventService {
       throw error;
     }
 
-    const legacyEvents = ownEvents.docs.filter(
-      snapshot => !snapshot.data()['visibility']
-    );
+    const eventsToMigrate = ownEvents.docs.filter(snapshot => {
+      const data = snapshot.data();
+      return !data['visibility']
+        || (
+          data['visibility'] === 'selected'
+          && !data['visibleToMap']
+        );
+    });
 
-    console.log('[FC DEBUG] Migrazione legacy: documenti da aggiornare', legacyEvents.length);
+    console.log('[FC DEBUG] Migrazione eventi legacy/indice condivisione:', eventsToMigrate.length);
     try {
-      await Promise.all(legacyEvents.map(snapshot =>
-        updateDoc(snapshot.ref, {
-          visibility: 'all',
-          visibleTo: []
-        })
-      ));
+      await Promise.all(eventsToMigrate.map(snapshot => {
+        const data = snapshot.data();
+        const updates: Record<string, unknown> = {};
+
+        if (!data['visibility']) {
+          updates['visibility'] = 'all';
+          updates['visibleTo'] = [];
+        }
+
+        if (data['visibility'] === 'selected' && !data['visibleToMap']) {
+          const visibleTo = Array.isArray(data['visibleTo']) ? data['visibleTo'] : [];
+          updates['visibleToMap'] = Object.fromEntries(
+            visibleTo
+              .filter((uid): uid is string => typeof uid === 'string' && !!uid)
+              .map(uid => [uid, true])
+          );
+        }
+
+        return updateDoc(snapshot.ref, updates);
+      }));
     } catch (error) {
       console.error('[FC DEBUG] ERRORE aggiornamento eventi legacy:', error);
       throw error;
