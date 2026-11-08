@@ -90,21 +90,35 @@ export class EventService {
   }
 
   private async migrateLegacyEvents(userId: string): Promise<void> {
-    const ownEvents = await getDocs(query(
-      this.eventsCollection,
-      where('authorId', '==', userId)
-    ));
+    console.log('[FC DEBUG] Migrazione legacy: lettura eventi personali', userId);
+    let ownEvents;
+    try {
+      ownEvents = await getDocs(query(
+        this.eventsCollection,
+        where('authorId', '==', userId)
+      ));
+    } catch (error) {
+      console.error('[FC DEBUG] ERRORE lettura eventi per migrazione legacy:', error);
+      throw error;
+    }
 
     const legacyEvents = ownEvents.docs.filter(
       snapshot => !snapshot.data()['visibility']
     );
 
-    await Promise.all(legacyEvents.map(snapshot =>
-      updateDoc(snapshot.ref, {
-        visibility: 'all',
-        visibleTo: []
-      })
-    ));
+    console.log('[FC DEBUG] Migrazione legacy: documenti da aggiornare', legacyEvents.length);
+    try {
+      await Promise.all(legacyEvents.map(snapshot =>
+        updateDoc(snapshot.ref, {
+          visibility: 'all',
+          visibleTo: []
+        })
+      ));
+    } catch (error) {
+      console.error('[FC DEBUG] ERRORE aggiornamento eventi legacy:', error);
+      throw error;
+    }
+    console.log('[FC DEBUG] Migrazione legacy completata');
   }
 
   getEventById(id: string): Observable<Event | undefined> {
