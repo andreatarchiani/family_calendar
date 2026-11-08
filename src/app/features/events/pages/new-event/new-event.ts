@@ -487,16 +487,16 @@ export class NewEvent {
 
       visibleTo:
         this.eventForm.value.visibility === 'selected'
+          ? (this.eventForm.value.visibleTo ?? [])
+          : [],
 
-          ?
-          (
-            this.eventForm.value.visibleTo ?? []
-          )
-
-          :
-          []
-
-
+      // Indice per query sicure: ogni destinatario ha un campo booleano interrogabile.
+      visibleToMap:
+        this.eventForm.value.visibility === 'selected'
+          ? Object.fromEntries(
+              (this.eventForm.value.visibleTo ?? []).map(uid => [uid, true])
+            )
+          : {}
 
     };
 
