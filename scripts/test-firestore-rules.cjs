@@ -10,6 +10,8 @@ const {
   getDoc,
   getDocs,
   collection,
+  query,
+  where,
   setDoc,
   updateDoc,
   deleteDoc,
@@ -141,6 +143,28 @@ async function main() {
         visibility: 'selected',
         visibleTo: ['carol']
       });
+
+      // Amicizia legacy con ID casuale: il profilo conserva il riferimento
+      // all'ultima amicizia accettata, ma non ha ancora l'array friends.
+      await setDoc(doc(db, 'users/legacyAuthor'), {
+        name: 'Legacy Author',
+        friends: [],
+        lastAcceptedFriendshipId: 'legacy-friendship-random-id'
+      });
+      await setDoc(doc(db, 'users/legacyViewer'), {
+        name: 'Legacy Viewer',
+        friends: []
+      });
+      await setDoc(doc(db, 'friendships/legacy-friendship-random-id'), {
+        requesterId: 'legacyAuthor',
+        addresseeId: 'legacyViewer',
+        status: 'accepted'
+      });
+      await setDoc(doc(db, 'events/legacy-selected'), {
+        authorId: 'legacyAuthor',
+        visibility: 'selected',
+        visibleTo: ['legacyViewer']
+      });
     });
 
     const alice = env.authenticatedContext('alice').firestore();
@@ -150,6 +174,7 @@ async function main() {
     const anonymous = env.unauthenticatedContext().firestore();
     const eventAlice = env.authenticatedContext('eventAlice').firestore();
     const eventBob = env.authenticatedContext('eventBob').firestore();
+    const legacyViewer = env.authenticatedContext('legacyViewer').firestore();
 
     await test('Un utente legge il proprio profilo', () =>
       assertSucceeds(getDoc(doc(alice, 'users/alice'))));
@@ -180,6 +205,25 @@ async function main() {
 
     await test('Un amico legge un evento selezionato per lui', () =>
       assertSucceeds(getDoc(doc(bob, 'events/selected-bob'))));
+
+    await test('Un amico legge eventi selected tramite query con array-contains', () =>
+      assertSucceeds(getDocs(query(
+        collection(bob, 'events'),
+        where('authorId', '==', 'alice'),
+        where('visibility', '==', 'selected'),
+        where('visibleTo', 'array-contains', 'bob')
+      ))));
+
+    await test('Un amico legacy legge un evento selected tramite ID amicizia non deterministico', () =>
+      assertSucceeds(getDoc(doc(legacyViewer, 'events/legacy-selected'))));
+
+    await test('Un amico legacy legge eventi selected tramite query', () =>
+      assertSucceeds(getDocs(query(
+        collection(legacyViewer, 'events'),
+        where('authorId', '==', 'legacyAuthor'),
+        where('visibility', '==', 'selected'),
+        where('visibleTo', 'array-contains', 'legacyViewer')
+      ))));
 
     await test('Un amico non legge un evento non condiviso con lui', () =>
       assertFails(getDoc(doc(bob, 'events/private'))));
