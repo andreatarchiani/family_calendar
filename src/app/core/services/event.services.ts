@@ -15,7 +15,7 @@ import {
   getDocs
 } from '@angular/fire/firestore';
 
-import { Observable, combineLatest, defer, from, map, switchMap } from 'rxjs';
+import { Observable, combineLatest, defer, from, map, switchMap, catchError } from 'rxjs';
 import { Event } from '../models/event.model';
 
 @Injectable({ providedIn: 'root' })
@@ -50,7 +50,12 @@ export class EventService {
           );
 
           const streams: Observable<Event[]>[] = [
-            collectionData(ownQuery, { idField: 'id' }) as Observable<Event[]>
+            (collectionData(ownQuery, { idField: 'id' }) as Observable<Event[]>).pipe(
+              catchError(error => {
+                console.error('[FC DEBUG] ERRORE query eventi personali', error);
+                throw error;
+              })
+            )
           ];
 
           const uniqueFriendIds = [...new Set(friendIds)]
@@ -72,8 +77,18 @@ export class EventService {
             );
 
             streams.push(
-              collectionData(allQuery, { idField: 'id' }) as Observable<Event[]>,
-              collectionData(selectedQuery, { idField: 'id' }) as Observable<Event[]>
+              (collectionData(allQuery, { idField: 'id' }) as Observable<Event[]>).pipe(
+                catchError(error => {
+                  console.error('[FC DEBUG] ERRORE query eventi amici visibility=all', friendId, error);
+                  throw error;
+                })
+              ),
+              (collectionData(selectedQuery, { idField: 'id' }) as Observable<Event[]>).pipe(
+                catchError(error => {
+                  console.error('[FC DEBUG] ERRORE query eventi amici visibility=selected', friendId, error);
+                  throw error;
+                })
+              )
             );
           }
 
