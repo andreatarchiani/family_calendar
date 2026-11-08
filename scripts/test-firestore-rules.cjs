@@ -135,13 +135,15 @@ async function main() {
       await setDoc(doc(db, 'events/selected-bob'), {
         authorId: 'alice',
         visibility: 'selected',
-        visibleTo: ['bob']
+        visibleTo: ['bob'],
+        visibleToMap: { bob: true }
       });
 
       await setDoc(doc(db, 'events/selected-carol'), {
         authorId: 'alice',
         visibility: 'selected',
-        visibleTo: ['carol']
+        visibleTo: ['carol'],
+        visibleToMap: { carol: true }
       });
 
       // Amicizia legacy con ID casuale: il profilo conserva il riferimento
@@ -163,7 +165,8 @@ async function main() {
       await setDoc(doc(db, 'events/legacy-selected'), {
         authorId: 'legacyAuthor',
         visibility: 'selected',
-        visibleTo: ['legacyViewer']
+        visibleTo: ['legacyViewer'],
+        visibleToMap: { legacyViewer: true }
       });
     });
 
@@ -218,7 +221,7 @@ async function main() {
         collection(bob, 'events'),
         where('authorId', '==', 'alice'),
         where('visibility', '==', 'selected'),
-        where('visibleTo', 'array-contains', 'bob')
+        where('visibleToMap.bob', '==', true)
       ))));
 
     await test('Un amico legacy legge un evento selected tramite ID amicizia non deterministico', () =>
@@ -229,7 +232,7 @@ async function main() {
         collection(legacyViewer, 'events'),
         where('authorId', '==', 'legacyAuthor'),
         where('visibility', '==', 'selected'),
-        where('visibleTo', 'array-contains', 'legacyViewer')
+        where('visibleToMap.legacyViewer', '==', true)
       ))));
 
     await test('Un amico non legge un evento non condiviso con lui', () =>
