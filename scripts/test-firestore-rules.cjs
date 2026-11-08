@@ -108,6 +108,20 @@ async function main() {
         addresseeId: 'eventCarol',
         status: 'pending'
       });
+      await setDoc(doc(db, 'users/eventAliceNoFriends'), {
+        name: 'Event Alice without mirrored friends array',
+        friends: []
+      });
+      await setDoc(doc(db, 'friendships/eventAliceNoFriends__eventBob'), {
+        requesterId: 'eventAliceNoFriends',
+        addresseeId: 'eventBob',
+        status: 'accepted'
+      });
+      await setDoc(doc(db, 'events/eventAliceNoFriends-legacy-selected'), {
+        authorId: 'eventAliceNoFriends',
+        visibility: 'selected',
+        visibleTo: ['eventBob']
+      });
       await setDoc(doc(db, 'events/eventAlice-update-valid'), {
         authorId: 'eventAlice',
         visibility: 'none',
@@ -208,6 +222,11 @@ async function main() {
 
     await test('Un amico legge un evento selezionato per lui', () =>
       assertSucceeds(getDoc(doc(bob, 'events/selected-bob'))));
+
+    await test('Il proprietario può completare la migrazione visibleToMap anche se il profilo friends non è sincronizzato', () =>
+      assertSucceeds(updateDoc(doc(eventAlice, 'events/eventAliceNoFriends-legacy-selected'), {
+        visibleToMap: { eventBob: true }
+      })));
 
     await test('Un amico legge eventi condivisi all tramite query', () =>
       assertSucceeds(getDocs(query(
