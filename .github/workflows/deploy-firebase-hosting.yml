@@ -29,16 +29,9 @@ jobs:
       - name: Build Angular app
         run: npm run build
 
-      - name: Configure Firebase credentials
-        env:
-          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: |
-          if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
-            echo "GitHub secret FIREBASE_SERVICE_ACCOUNT is missing."
-            exit 1
-          fi
-          printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/firebase-service-account.json"
-          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
-
       - name: Deploy to Firebase Hosting
-        run: npx --yes firebase-tools@15.22.3 deploy --only hosting --project family-calendar-1e385 --non-interactive
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: family-calendar-1e385
+          channelId: live
