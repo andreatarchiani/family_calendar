@@ -11,6 +11,18 @@ service cloud.firestore {
       return /databases/$(database)/documents/friendships/$(a + '__' + b);
     }
 
+    // Supporta anche le amicizie legacy con ID documento non deterministico.
+    // L'ID viene accettato solo se il documento conferma entrambi i partecipanti
+    // e lo stato accepted: conoscere un ID da solo non concede accesso.
+    function acceptedFriendshipById(friendshipId, requesterId, addresseeId) {
+      let ref = /databases/$(database)/documents/friendships/$(friendshipId);
+      return friendshipId is string
+        && exists(ref)
+        && get(ref).data.status == 'accepted'
+        && get(ref).data.requesterId == requesterId
+        && get(ref).data.addresseeId == addresseeId;
+    }
+
     function hasAcceptedFriendship(userId) {
       let outgoing = friendshipDoc(request.auth.uid, userId);
       let incoming = friendshipDoc(userId, request.auth.uid);
@@ -31,6 +43,26 @@ service cloud.firestore {
           exists(currentProfile)
           && get(currentProfile).data.friends is list
           && get(currentProfile).data.friends.hasAny([userId])
+        )
+        ||
+        (
+          exists(targetProfile)
+          && get(targetProfile).data.keys().hasAny(['lastAcceptedFriendshipId'])
+          && acceptedFriendshipById(
+            get(targetProfile).data.lastAcceptedFriendshipId,
+            userId,
+            request.auth.uid
+          )
+        )
+        ||
+        (
+          exists(currentProfile)
+          && get(currentProfile).data.keys().hasAny(['lastAcceptedFriendshipId'])
+          && acceptedFriendshipById(
+            get(currentProfile).data.lastAcceptedFriendshipId,
+            request.auth.uid,
+            userId
+          )
         )
       );
     }
