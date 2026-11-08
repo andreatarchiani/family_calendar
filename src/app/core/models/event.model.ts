@@ -28,6 +28,9 @@ export interface Event {
 
     visibleTo?: string[]; // usato solo se visibility === 'selected'
 
+    /** Indice Firestore interrogabile per la condivisione selettiva. */
+    visibleToMap?: Record<string, boolean>;
+
     createdAt?: Timestamp;
 
     updatedAt?: Timestamp;
