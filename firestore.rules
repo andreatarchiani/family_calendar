@@ -209,7 +209,7 @@ service cloud.firestore {
               (
                 resource.data.visibility == 'selected'
                 && resource.data.visibleTo is list
-                && resource.data.visibleTo.hasAny([request.auth.uid])
+                && request.auth.uid in resource.data.visibleTo
               )
             )
           )
