@@ -10,7 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 
-import { from, map, switchMap } from 'rxjs';
+import { from, map, switchMap, tap, catchError } from 'rxjs';
 
 import { Router } from '@angular/router';
 
@@ -173,8 +173,7 @@ export class Home {
 
 
               switchMap(async events => {
-
-
+                console.log('[FC HOME] Avvio caricamento preferenze e profili', events.length);
 
                 // recupero preferenze personali
                 const preferences =
@@ -185,14 +184,15 @@ export class Home {
 
                     this.friendColorService
                       .getFriendColors(user.uid)
-                      .subscribe(data => {
-
-
-                        resolve(
-                          data ?? {}
-                        );
-
-
+                      .subscribe({
+                        next: data => {
+                          console.log('[FC HOME] Preferenze caricate');
+                          resolve(data ?? {});
+                        },
+                        error: error => {
+                          console.error('[FC HOME] ERRORE preferenze colori', error);
+                          resolve({});
+                        }
                       });
 
 
@@ -236,13 +236,13 @@ export class Home {
 
 
 
-                      const author =
-
-
-                        await this.userService
-                          .getUserById(
-                            event.authorId
-                          );
+                      let author;
+                      try {
+                        author = await this.userService.getUserById(event.authorId);
+                      } catch (error) {
+                        console.error('[FC HOME] ERRORE caricamento profilo autore', event.authorId, error);
+                        throw error;
+                      }
 
 
 
