@@ -41,4 +41,4 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
 
       - name: Deploy to Firebase Hosting
-        run: npx firebase-tools deploy --only hosting --project family-calendar-1e385 --non-interactive
+        run: npx --yes firebase-tools@15.22.3 deploy --only hosting --project family-calendar-1e385 --non-interactive
