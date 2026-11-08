@@ -15,7 +15,7 @@ import { FriendshipService } from '../../core/services/friendship';
 import { CurrentUser } from '../../core/services/current-user';
 import { FriendColorService } from '../../core/services/friend-color';
 
-import { switchMap, from } from 'rxjs';
+import { switchMap, from, catchError, tap } from 'rxjs';
 
 import { Router } from '@angular/router';
 
@@ -111,11 +111,18 @@ export class Calendar {
 
 
 
+          console.log('[FC DEBUG] Utente autenticato:', user.uid);
+          console.log('[FC DEBUG] Avvio caricamento amici');
+
           return from(
             this.loadFriends(user.uid)
           )
-
             .pipe(
+              tap(friendIds => console.log('[FC DEBUG] Amici caricati:', friendIds)),
+              catchError(error => {
+                console.error('[FC DEBUG] ERRORE caricamento amici:', error);
+                throw error;
+              }),
 
               switchMap(friendIds => {
 
@@ -133,9 +140,16 @@ export class Calendar {
 
 
 
+                console.log('[FC DEBUG] Avvio getVisibleEvents');
                 return this.eventService.getVisibleEvents(
                   user.uid,
                   visibleUsers
+                ).pipe(
+                  tap(events => console.log('[FC DEBUG] Eventi ricevuti da Firestore:', events)),
+                  catchError(error => {
+                    console.error('[FC DEBUG] ERRORE getVisibleEvents:', error);
+                    throw error;
+                  })
                 );
 
 
@@ -191,18 +205,15 @@ export class Calendar {
       )
 
 
-      .subscribe(events => {
-
-
-        console.log(
-          'EVENTI FINALI',
-          events
-        );
-
-
-        this.events = events;
-
-
+      .subscribe({
+        next: events => {
+          console.log('[FC DEBUG] EVENTI FINALI:', events);
+          this.events = events;
+        },
+        error: error => {
+          console.error('[FC DEBUG] ERRORE FATALE caricamento calendario:', error);
+          this.events = [];
+        }
       });
 
 
