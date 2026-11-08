@@ -188,11 +188,29 @@ service cloud.firestore {
           && (
             request.resource.data.visibility != 'selected'
             || (
-              request.resource.data.visibleToMap is map
+              exists(/databases/$(database)/documents/users/$(request.auth.uid))
+              && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends is list
+              && request.resource.data.visibleTo.hasOnly(
+                get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends
+              )
+              && request.resource.data.visibleToMap is map
               && request.resource.data.visibleToMap.keys().hasOnly(request.resource.data.visibleTo)
               && request.resource.data.visibleToMap.keys().size() == request.resource.data.visibleTo.size()
             )
           );
+      }
+
+      // Migrazione limitata: il proprietario può soltanto aggiungere l'indice
+      // ai destinatari già presenti nell'evento, senza cambiare la lista.
+      function validVisibleToMigration() {
+        return resource.data.visibility == 'selected'
+          && resource.data.visibleTo is list
+          && request.resource.data.visibleTo == resource.data.visibleTo
+          && request.resource.data.visibility == resource.data.visibility
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['visibleToMap'])
+          && request.resource.data.visibleToMap is map
+          && request.resource.data.visibleToMap.keys().hasOnly(resource.data.visibleTo)
+          && request.resource.data.visibleToMap.keys().size() == resource.data.visibleTo.size();
       }
 
       function canReadEvent() {
@@ -225,7 +243,7 @@ service cloud.firestore {
         && resource.data.authorId == request.auth.uid
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.visibility in ['all', 'none', 'selected']
-        && validVisibleTo();
+        && (validVisibleTo() || validVisibleToMigration());
 
       allow delete: if signedIn()
         && resource.data.authorId == request.auth.uid;
