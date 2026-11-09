@@ -378,15 +378,42 @@ button:disabled {
   text-align: center;
 }
 .reset-icon {
-  display: grid;
-  place-items: center;
-  width: 54px;
-  height: 54px;
-  margin-bottom: 15px;
-  border-radius: 17px;
-  background: #edf6ff;
-  color: #1976d2;
-  font-size: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  box-sizing: border-box;
+  margin: 0 auto 17px;
+  border: 1px solid #e4e9e4;
+  border-radius: 18px;
+  background: #f2f5f1;
+  color: #647568;
+  box-shadow: 0 5px 14px rgba(52, 72, 56, .06);
+}
+.reset-icon-symbol {
+  position: relative;
+  display: block;
+  width: 25px;
+  height: 18px;
+  box-sizing: border-box;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+}
+.reset-icon-symbol::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 3px;
+  width: 15px;
+  height: 15px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  border-radius: 1px;
+  transform: rotate(45deg) scale(.68);
+  transform-origin: center;
+  background: #f2f5f1;
 }
 .password-reset-view h2 {
   margin: 0 0 9px;
@@ -419,19 +446,42 @@ button:disabled {
   animation: auth-mode-enter .32s cubic-bezier(.2, .75, .25, 1) both;
 }
 .reset-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 58px;
   height: 58px;
-  margin-bottom: 17px;
-  border: 1px solid rgba(33, 150, 243, .12);
-  border-radius: 19px;
-  background: linear-gradient(145deg, #eef7ff, #e4f0ff);
-  box-shadow: 0 7px 18px rgba(33, 116, 190, .09);
+  flex: 0 0 58px;
+  box-sizing: border-box;
+  margin: 0 auto 17px;
+  border: 1px solid #e4e9e4;
+  border-radius: 18px;
+  background: #f2f5f1;
+  color: #647568;
+  box-shadow: 0 5px 14px rgba(52, 72, 56, .06);
 }
 .reset-icon-symbol {
+  position: relative;
   display: block;
-  transform: translateY(-1px);
-  font-size: 25px;
-  line-height: 1;
+  width: 25px;
+  height: 18px;
+  box-sizing: border-box;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+}
+.reset-icon-symbol::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 3px;
+  width: 15px;
+  height: 15px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  border-radius: 1px;
+  transform: rotate(45deg) scale(.68);
+  transform-origin: center;
+  background: #f2f5f1;
 }
 .password-reset-view h2 {
   letter-spacing: -.35px;
