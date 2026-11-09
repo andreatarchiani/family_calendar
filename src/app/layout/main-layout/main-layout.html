@@ -1,10 +1,10 @@
-<app-header 
+<app-header
     [user]="currentUser.user$ | async">
 </app-header>
 
-
-<router-outlet></router-outlet>
-
+<main class="content">
+    <router-outlet></router-outlet>
+</main>
 
 <app-bottom-menu>
 </app-bottom-menu>
