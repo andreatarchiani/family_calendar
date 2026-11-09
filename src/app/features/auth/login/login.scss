@@ -294,3 +294,27 @@ button:disabled {
   color: #9aa7b5;
   font-size: 11px;
 }
+
+.cancel-verification-button {
+  min-height: 43px;
+  width: 100%;
+  margin-top: 20px;
+  border: 1px solid #dfe5ed;
+  border-radius: 13px;
+  background: #fff;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.cancel-verification-button:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.cancel-verification-button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
