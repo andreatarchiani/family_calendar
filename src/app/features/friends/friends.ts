@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { filter, firstValueFrom, take } from 'rxjs';
+import { Firestore, collection, onSnapshot, query, Unsubscribe, where } from '@angular/fire/firestore';
 import { ConfirmationDialog } from '../../shared/components/confirmation-dialog/confirmation-dialog';
 
 import { User } from '../../core/models/user';
@@ -23,7 +24,7 @@ import { FriendColorService } from '../../core/services/friend-color';
   templateUrl: './friends.html',
   styleUrl: './friends.scss'
 })
-export class Friends implements OnInit {
+export class Friends implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private currentUserService = inject(CurrentUser);
   private userService = inject(UserService);
@@ -31,6 +32,11 @@ export class Friends implements OnInit {
   private friendColorService = inject(FriendColorService);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
+  private firestore = inject(Firestore);
+  private friendshipUnsubscribes: Unsubscribe[] = [];
+  private outgoingFriendIds = new Set<string>();
+  private incomingFriendIds = new Set<string>();
+  private friendRefreshSequence = 0;
 
   currentUser: User | null = null;
   searchTerm = '';
@@ -61,7 +67,7 @@ export class Friends implements OnInit {
       .subscribe(user => {
         this.currentUser = user;
         this.loadFriendColors();
-        void this.loadData();
+        this.subscribeToFriendshipChanges();
         if (this.pendingInviteToken) {
           void this.acceptSharedInvite(this.pendingInviteToken);
         }
@@ -70,6 +76,64 @@ export class Friends implements OnInit {
           void this.searchUsers();
         }
       });
+  }
+
+
+  ngOnDestroy() {
+    this.friendshipUnsubscribes.forEach(unsubscribe => unsubscribe());
+    this.friendshipUnsubscribes = [];
+  }
+
+  private subscribeToFriendshipChanges() {
+    const userId = this.currentUser?.uid;
+    if (!userId) return;
+
+    const friendships = collection(this.firestore, 'friendships');
+
+    this.friendshipUnsubscribes.push(onSnapshot(
+      query(friendships, where('addresseeId', '==', userId), where('status', '==', 'pending')),
+      snapshot => {
+        this.incomingRequests = snapshot.docs.map(item => ({
+          id: item.id,
+          ...(item.data() as Friendship),
+          requesterName: item.data()['requesterName'] || 'Utente'
+        }));
+      },
+      error => console.error('[FC FRIENDS] Errore ascolto richieste in arrivo', error)
+    ));
+
+    this.friendshipUnsubscribes.push(onSnapshot(
+      query(friendships, where('requesterId', '==', userId), where('status', '==', 'accepted')),
+      snapshot => {
+        this.outgoingFriendIds = new Set(snapshot.docs.map(item => item.data()['addresseeId'] as string));
+        void this.refreshFriendsFromRealtime();
+      },
+      error => console.error('[FC FRIENDS] Errore ascolto amicizie inviate', error)
+    ));
+
+    this.friendshipUnsubscribes.push(onSnapshot(
+      query(friendships, where('addresseeId', '==', userId), where('status', '==', 'accepted')),
+      snapshot => {
+        this.incomingFriendIds = new Set(snapshot.docs.map(item => item.data()['requesterId'] as string));
+        void this.refreshFriendsFromRealtime();
+      },
+      error => console.error('[FC FRIENDS] Errore ascolto amicizie ricevute', error)
+    ));
+  }
+
+  private async refreshFriendsFromRealtime() {
+    const sequence = ++this.friendRefreshSequence;
+    const friendIds = Array.from(new Set([
+      ...this.outgoingFriendIds,
+      ...this.incomingFriendIds
+    ]));
+    try {
+      const resolved = await Promise.all(friendIds.map(uid => this.userService.getUserById(uid)));
+      if (sequence !== this.friendRefreshSequence) return;
+      this.friends = resolved.filter((user): user is User => !!user);
+    } catch (error) {
+      console.error('[FC FRIENDS] Errore aggiornamento lista amici', error);
+    }
   }
 
   get friendCode(): string {
