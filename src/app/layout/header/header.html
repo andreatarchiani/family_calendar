@@ -1,51 +1,52 @@
 <header class="app-header">
-
-
     <div class="title">
-
-        <mat-icon>
-            calendar_month
-        </mat-icon>
-
-
-        <span>
-            Family Calendar
-        </span>
-
-
-        <span class="version">
-            v{{ appVersion }}
-        </span>
-
-
+        <mat-icon>calendar_month</mat-icon>
+        <span>Family Calendar</span>
+        <span class="version">v{{ appVersion }}</span>
     </div>
-
-
 
     <div class="account-area">
-
         @if(user) {
-
-        <span class="account-name" [style.color]="user.color">
-
-            {{ user.name }}
-
-        </span>
-
+            <span class="account-name" [style.color]="user.color">
+                {{ user.name }}
+            </span>
         }
 
-
         <button mat-icon-button matTooltip="Logout" (click)="logout()">
-
-
-            <mat-icon>
-                logout
-            </mat-icon>
-
-
+            <mat-icon>logout</mat-icon>
         </button>
-
     </div>
-
-
 </header>
+
+@if(showLogoutConfirmation) {
+    <div class="dialog-backdrop" (click)="cancelLogout()">
+        <section
+            class="logout-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="logout-title"
+            aria-describedby="logout-description"
+            (click)="$event.stopPropagation()">
+            <h2 id="logout-title">Conferma logout</h2>
+            <p id="logout-description">
+                Sei sicuro di fare <strong class="logout-highlight">Logout</strong>?
+            </p>
+            <div class="dialog-actions">
+                <button
+                    type="button"
+                    class="cancel-button"
+                    (click)="cancelLogout()"
+                    [disabled]="isLoggingOut">
+                    Annulla
+                </button>
+                <button
+                    type="button"
+                    class="confirm-button"
+                    (click)="confirmLogout()"
+                    [disabled]="isLoggingOut">
+                    {{ isLoggingOut ? 'Uscita...' : 'Logout' }}
+                </button>
+            </div>
+        </section>
+    </div>
+}
