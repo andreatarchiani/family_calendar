@@ -18,6 +18,8 @@ import { Router } from '@angular/router';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { CurrentUser } from '../../core/services/current-user';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmationDialog } from '../../shared/components/confirmation-dialog/confirmation-dialog';
 
 import { EventCardComponent } from '../../shared/components/event-card/event-card';
 
@@ -64,6 +66,8 @@ export class Home {
   currentUser = inject(CurrentUser);
 
   private snackBar = inject(MatSnackBar);
+
+  private dialog = inject(MatDialog);
 
 
 
@@ -386,19 +390,21 @@ export class Home {
 
 
 
-    const confirmed =
+    const confirmed = await firstValueFrom(this.dialog.open(ConfirmationDialog, {
+      data: {
+        title: 'Eliminare questo evento?',
+        message: 'L’evento verrà rimosso dal calendario e non sarà più visibile alle persone con cui lo hai condiviso.',
+        confirmText: 'Elimina evento',
+        cancelText: 'Annulla',
+        icon: 'event_busy',
+        danger: true
+      },
+      panelClass: 'family-confirm-panel',
+      maxWidth: 'calc(100vw - 32px)',
+      autoFocus: false
+    }).afterClosed());
 
-      window.confirm(
-        'Sei sicuro di voler eliminare questo evento?'
-      );
-
-
-
-    if (!confirmed) {
-
-      return;
-
-    }
+    if (!confirmed) return;
 
 
 
