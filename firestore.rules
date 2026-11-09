@@ -77,15 +77,26 @@ service cloud.firestore {
         && oldFriends.hasAll(newFriends)
         && (
           (
-            exists(friendshipDoc(request.auth.uid, profileUserId))
-            && get(friendshipDoc(request.auth.uid, profileUserId)).data.status == 'accepted'
-            && !existsAfter(friendshipDoc(request.auth.uid, profileUserId))
+            profileUserId == request.auth.uid
           )
           ||
           (
-            exists(friendshipDoc(profileUserId, request.auth.uid))
-            && get(friendshipDoc(profileUserId, request.auth.uid)).data.status == 'accepted'
-            && !existsAfter(friendshipDoc(profileUserId, request.auth.uid))
+            profileUserId != request.auth.uid
+            && oldFriends.hasAny([request.auth.uid])
+            && !newFriends.hasAny([request.auth.uid])
+            && (
+              (
+                exists(friendshipDoc(request.auth.uid, profileUserId))
+                && get(friendshipDoc(request.auth.uid, profileUserId)).data.status == 'accepted'
+                && !existsAfter(friendshipDoc(request.auth.uid, profileUserId))
+              )
+              ||
+              (
+                exists(friendshipDoc(profileUserId, request.auth.uid))
+                && get(friendshipDoc(profileUserId, request.auth.uid)).data.status == 'accepted'
+                && !existsAfter(friendshipDoc(profileUserId, request.auth.uid))
+              )
+            )
           )
         );
     }
