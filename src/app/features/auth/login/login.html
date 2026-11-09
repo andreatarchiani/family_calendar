@@ -36,7 +36,7 @@
           [attr.autocomplete]="mode === 'register' ? 'new-password' : 'current-password'" required>
       </label>
       <button *ngIf="mode === 'login'" class="forgot-password-link" type="button" (click)="openPasswordReset()">
-        Ho dimenticato la password
+        Hai dimenticato la password?
       </button>
 
       <label *ngIf="mode === 'register'">
