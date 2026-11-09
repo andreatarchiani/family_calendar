@@ -47,6 +47,13 @@ export class Login implements OnInit, OnDestroy {
   ngOnInit(): void {
     const verified = this.route.snapshot.queryParamMap.get('verified');
     const pending = this.route.snapshot.queryParamMap.get('verify') === 'pending';
+    const passwordReset = this.route.snapshot.queryParamMap.get('passwordReset') === '1';
+
+    if (passwordReset) {
+      this.showPasswordReset = false;
+      this.mode = 'login';
+      this.successMessage = 'Password aggiornata correttamente. Ora puoi accedere con la nuova password.';
+    }
     const savedPendingEmail = sessionStorage.getItem('familyCalendar.pendingVerificationEmail');
 
     if (pending || savedPendingEmail) {
