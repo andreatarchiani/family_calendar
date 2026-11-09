@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-and-deploy:
@@ -29,6 +29,21 @@ jobs:
       - name: Test Firestore security rules
         run: npx firebase emulators:exec --only firestore --project demo-family-calendar-test "node scripts/test-firestore-rules.cjs"
 
+      - name: Increment app version for this publication
+        id: app-version
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'src/app/core/config/app-config.ts';
+          const content = fs.readFileSync(path, 'utf8');
+          const match = content.match(/version:\s*'(\d+)\.(\d+)'/);
+          if (!match) throw new Error('Formato versione app non riconosciuto');
+          const nextVersion = `${match[1]}.${Number(match[2]) + 1}`;
+          fs.writeFileSync(path, content.replace(match[0], `version: '${nextVersion}'`));
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${nextVersion}\\n`);
+          console.log(`Versione per questa pubblicazione: ${nextVersion}`);
+          NODE
+
       - name: Build Angular app
         run: npm run build
 
@@ -47,3 +62,11 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: family-calendar-1e385
           channelId: live
+
+      - name: Save published app version
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/app/core/config/app-config.ts
+          git commit -m "chore: bump app version to v${{ steps.app-version.outputs.version }} [skip ci]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
