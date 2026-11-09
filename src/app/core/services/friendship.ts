@@ -9,6 +9,7 @@ import {
   query,
   runTransaction,
   setDoc,
+  updateDoc,
   where,
   arrayUnion
 } from '@angular/fire/firestore';
@@ -45,7 +46,7 @@ export class FriendshipService {
     const friendshipId = `invite_${token}`;
     const friendshipRef = doc(this.firestore, 'friendships', friendshipId);
 
-    return runTransaction(this.firestore, async transaction => {
+    const result = await runTransaction(this.firestore, async transaction => {
       const inviteSnapshot = await transaction.get(inviteRef);
       if (!inviteSnapshot.exists()) throw new Error('Questo invito non esiste o non è più disponibile.');
 
@@ -85,16 +86,24 @@ export class FriendshipService {
         createdAt,
         inviteId: token
       });
-      transaction.update(senderRef, {
-        friends: arrayUnion(recipientId),
-        lastAcceptedFriendshipId: friendshipId
-      });
-      transaction.update(recipientRef, {
-        friends: arrayUnion(invite['senderId']),
-        lastAcceptedFriendshipId: friendshipId
-      });
       return 'accepted';
     });
+
+    if (result === 'accepted') {
+      const inviteSnapshot = await getDoc(inviteRef);
+      const senderId = inviteSnapshot.data()?.['senderId'] as string;
+      await Promise.all([
+        updateDoc(doc(this.firestore, 'users', senderId), {
+          friends: arrayUnion(recipientId),
+          lastAcceptedFriendshipId: friendshipId
+        }),
+        updateDoc(doc(this.firestore, 'users', recipientId), {
+          friends: arrayUnion(senderId),
+          lastAcceptedFriendshipId: friendshipId
+        })
+      ]);
+    }
+    return result;
   }
 
   async sendRequest(requesterId: string, addresseeId: string, requesterName: string) {

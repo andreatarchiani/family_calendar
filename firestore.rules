@@ -190,11 +190,16 @@ service cloud.firestore {
         && request.resource.data.createdAt is number
         && request.resource.data.expiresAt is timestamp;
       allow update: if signedIn()
+        && resource.data.senderId != request.auth.uid
         && resource.data.status == 'pending'
         && request.resource.data.status == 'accepted'
         && request.resource.data.recipientId == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'recipientId', 'acceptedAt'])
-        && request.resource.data.acceptedAt is number;
+        && request.resource.data.senderId == resource.data.senderId
+        && request.resource.data.senderName == resource.data.senderName
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.expiresAt == resource.data.expiresAt
+        && request.resource.data.acceptedAt is number
+        && request.resource.data.keys().hasOnly(['senderId', 'senderName', 'status', 'createdAt', 'expiresAt', 'recipientId', 'acceptedAt']);
       allow delete: if false;
     }
 

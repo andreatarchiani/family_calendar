@@ -298,15 +298,15 @@ async function main() {
         createdAt: Date.now(),
         inviteId: 'test-invite-token-1234567890abcdef'
       });
-      batch.update(doc(bob, 'users/alice'), {
+      await assertSucceeds(batch.commit());
+      await assertSucceeds(updateDoc(doc(bob, 'users/alice'), {
         friends: ['bob'],
         lastAcceptedFriendshipId: 'invite_test-invite-token-1234567890abcdef'
-      });
-      batch.update(doc(bob, 'users/bob'), {
+      }));
+      await assertSucceeds(updateDoc(doc(bob, 'users/bob'), {
         friends: ['alice'],
         lastAcceptedFriendshipId: 'invite_test-invite-token-1234567890abcdef'
-      });
-      await assertSucceeds(batch.commit());
+      }));
     });
 
     await test('Un utente non può accettare un invito a nome di un altro', () =>
