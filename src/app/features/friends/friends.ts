@@ -119,7 +119,7 @@ export class Friends implements OnInit {
     }
 
       try {
-      await navigator.clipboard.writeText(inviteText);
+      await navigator.clipboard.writeText(`${inviteText} ${inviteUrl.toString()}`);
       this.snackBar.open('Invito copiato: puoi incollarlo dove vuoi', 'OK', { duration: 3000 });
     } catch {
       this.snackBar.open('Condivisione non supportata da questo browser', 'OK', { duration: 2500 });
