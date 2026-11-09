@@ -68,19 +68,50 @@
     background: linear-gradient(135deg, #253f68, #315b91);
     box-shadow: 0 8px 22px rgba(37, 63, 104, .15);
 }
-.card-topline { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
-.qr-code-trigger { flex: 0 0 35px; margin: 0; }
-.card-kicker { text-align: center; }
+.card-topline {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+}
+.qr-code-trigger {
+    display: flex;
+    flex: 0 0 35px;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    margin: 0;
+    padding: 0;
+}
 .card-icon {
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 35px;
     height: 35px;
     border-radius: 11px;
     color: white;
     background: rgba(255,255,255,.15);
 }
-.card-kicker { color: rgba(255,255,255,.72); font-size: 10px; font-weight: 800; letter-spacing: 1.1px; }
+.qr-code-trigger mat-icon {
+    display: block;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    font-size: 24px;
+    line-height: 24px;
+    text-align: center;
+}
+.card-kicker {
+    color: rgba(255,255,255,.72);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.1px;
+    text-align: left;
+}
 .friend-code-card h2 { margin: 15px 0 6px; font-size: 19px; font-weight: 750; }
 .friend-code-card > p { max-width: 600px; margin: 0 0 16px; color: rgba(255,255,255,.78); font-size: 12px; line-height: 1.55; }
 .invite-action-row { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
