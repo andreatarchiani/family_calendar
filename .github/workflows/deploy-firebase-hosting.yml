@@ -40,7 +40,7 @@ jobs:
           if (!match) throw new Error('Formato versione app non riconosciuto');
           const nextVersion = `${match[1]}.${Number(match[2]) + 1}`;
           fs.writeFileSync(path, content.replace(match[0], `version: '${nextVersion}'`));
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${nextVersion}\\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${nextVersion}\n`);
           console.log(`Versione per questa pubblicazione: ${nextVersion}`);
           NODE
 
