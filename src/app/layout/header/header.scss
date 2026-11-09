@@ -15,8 +15,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 21px;
+    line-height: 1.25;
 }
 
 .title mat-icon {
@@ -47,29 +47,48 @@
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background: rgba(0, 0, 0, 0.48);
+    background: rgba(16, 29, 48, 0.56);
+    backdrop-filter: blur(5px);
 }
 
 .logout-dialog {
     width: min(100%, 360px);
     box-sizing: border-box;
-    padding: 24px;
-    border-radius: 18px;
+    padding: 30px 28px 24px;
+    border: 1px solid rgba(255, 255, 255, .75);
+    border-radius: 24px;
     background: #fff;
     color: #202124;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.24);
+    box-shadow: 0 24px 70px rgba(15, 30, 55, 0.25);
+    text-align: center;
+    animation: logout-dialog-in .2s ease-out;
 }
 
+.logout-dialog-icon {
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 18px;
+    border-radius: 19px;
+    color: #d64545;
+    background: #fff0f0;
+}
+.logout-dialog-icon mat-icon { width: 30px; height: 30px; font-size: 30px; }
+
 .logout-dialog h2 {
-    margin: 0 0 12px;
+    margin: 0 0 10px;
+    font-size: 21px;
+    font-weight: 800;
     font-size: 20px;
     font-weight: 600;
 }
 
 .logout-dialog p {
     margin: 0;
-    font-size: 16px;
-    line-height: 1.5;
+    color: #687386;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
 .logout-highlight {
@@ -79,17 +98,17 @@
 
 .dialog-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     align-items: center;
     gap: 10px;
-    margin-top: 28px;
+    margin-top: 26px;
 }
 
 .dialog-actions button {
     min-height: 42px;
     padding: 0 16px;
     border: 0;
-    border-radius: 10px;
+    border-radius: 12px;
     font: inherit;
     font-size: 14px;
     font-weight: 600;
@@ -97,13 +116,13 @@
 }
 
 .cancel-button {
-    color: #424242;
-    background: #f1f3f4;
+    color: #596579;
+    background: #f1f4f8;
 }
 
 .confirm-button {
     color: #fff;
-    background: #d32f2f;
+    background: #d64545;
 }
 
 .dialog-actions button:disabled {
@@ -124,4 +143,9 @@
     .account-area {
         gap: 4px;
     }
+}
+
+@keyframes logout-dialog-in {
+    from { opacity: 0; transform: translateY(8px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
