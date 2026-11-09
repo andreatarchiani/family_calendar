@@ -12,8 +12,6 @@ import {
   deleteDoc,
   query,
   where,
-  or,
-  and,
   getDocs
 } from '@angular/fire/firestore';
 
@@ -65,31 +63,34 @@ export class EventService {
             .slice(0, 30);
 
           for (const friendId of uniqueFriendIds) {
-            // Una query OR sostituisce i due listener separati (all/selected).
-            // Manteniamo authorId uguale al singolo amico per consentire alle
-            // Security Rules di verificare in modo preciso l'amicizia.
-            const friendEventsQuery = query(
+            const allQuery = query(
               this.eventsCollection,
               where('authorId', '==', friendId),
-              or(
-                where('visibility', '==', 'all'),
-                and(
-                  where('visibility', '==', 'selected'),
-                  where(`visibleToMap.${currentUserId}`, '==', true)
-                )
-              )
+              where('visibility', '==', 'all')
+            );
+
+            const selectedQuery = query(
+              this.eventsCollection,
+              where('authorId', '==', friendId),
+              where('visibility', '==', 'selected'),
+              where(`visibleToMap.${currentUserId}`, '==', true)
             );
 
             streams.push(
-              (collectionData(friendEventsQuery, { idField: 'id' }) as Observable<Event[]>).pipe(
+              (collectionData(allQuery, { idField: 'id' }) as Observable<Event[]>).pipe(
                 catchError(error => {
-                  console.error('[FC DEBUG] ERRORE query eventi condivisi', friendId, error);
+                  console.error('[FC DEBUG] ERRORE query eventi amici visibility=all', friendId, error);
+                  throw error;
+                })
+              ),
+              (collectionData(selectedQuery, { idField: 'id' }) as Observable<Event[]>).pipe(
+                catchError(error => {
+                  console.error('[FC DEBUG] ERRORE query eventi amici visibility=selected', friendId, error);
                   throw error;
                 })
               )
             );
           }
-
           return combineLatest(streams).pipe(
             map(groups => {
               const byId = new Map<string, Event>();
