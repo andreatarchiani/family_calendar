@@ -68,7 +68,9 @@
     background: linear-gradient(135deg, #253f68, #315b91);
     box-shadow: 0 8px 22px rgba(37, 63, 104, .15);
 }
-.card-topline { display: flex; align-items: center; gap: 10px; }
+.card-topline { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
+.qr-code-trigger { flex: 0 0 35px; margin: 0; }
+.card-kicker { text-align: center; }
 .card-icon {
     display: grid;
     place-items: center;
