@@ -20,6 +20,14 @@ export class Login implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
 
   mode: 'login' | 'register' = 'login';
+  showPassword = false;
+  showConfirmPassword = false;
+  showNewPassword = false;
+  passwordActionCode = '';
+  passwordActionReady = false;
+  passwordActionLoading = false;
+  newPassword = '';
+  confirmNewPassword = '';
   showPasswordReset = false;
   modeTransition = false;
   private modeTransitionTimer: ReturnType<typeof setTimeout> | null = null;
@@ -48,6 +56,15 @@ export class Login implements OnInit, OnDestroy {
     const verified = this.route.snapshot.queryParamMap.get('verified');
     const pending = this.route.snapshot.queryParamMap.get('verify') === 'pending';
     const passwordReset = this.route.snapshot.queryParamMap.get('passwordReset') === '1';
+    const actionMode = this.route.snapshot.queryParamMap.get('mode');
+    const actionCode = this.route.snapshot.queryParamMap.get('oobCode');
+
+    if (actionMode === 'resetPassword' && actionCode) {
+      this.passwordActionCode = actionCode;
+      this.passwordActionLoading = true;
+      void this.preparePasswordReset(actionCode);
+      return;
+    }
 
     if (passwordReset) {
       this.showPasswordReset = false;
@@ -168,6 +185,55 @@ export class Login implements OnInit, OnDestroy {
       ? returnUrl
       : '/home';
     void this.router.navigateByUrl(destination);
+  }
+
+  private async preparePasswordReset(code: string): Promise<void> {
+    try {
+      await this.authService.verifyPasswordResetCode(code);
+      this.passwordActionReady = true;
+    } catch (error) {
+      console.error('Link di reimpostazione password non valido o scaduto', error);
+      this.errorMessage = 'Questo link non è valido o è scaduto. Richiedi una nuova email di reimpostazione.';
+    } finally {
+      this.passwordActionLoading = false;
+    }
+  }
+
+  async completePasswordReset(): Promise<void> {
+    this.errorMessage = '';
+    if (this.newPassword.length < 6) {
+      this.errorMessage = 'La nuova password deve contenere almeno 6 caratteri.';
+      return;
+    }
+    if (this.newPassword !== this.confirmNewPassword) {
+      this.errorMessage = 'Le password non coincidono.';
+      return;
+    }
+    this.isLoading = true;
+    try {
+      await this.authService.completePasswordReset(this.passwordActionCode, this.newPassword);
+      this.passwordActionReady = false;
+      this.passwordActionCode = '';
+      this.newPassword = '';
+      this.confirmNewPassword = '';
+      this.showNewPassword = false;
+      this.showConfirmPassword = false;
+      this.mode = 'login';
+      this.showPasswordReset = false;
+      this.password = '';
+      this.showPassword = false;
+      this.successMessage = 'Password aggiornata correttamente. Ora puoi accedere con la nuova password.';
+      await this.router.navigateByUrl('/login', { replaceUrl: true });
+    } catch (error: any) {
+      console.error('Errore durante il salvataggio della nuova password', error);
+      this.errorMessage = error?.code === 'auth/weak-password'
+        ? 'La password è troppo semplice. Scegline una più sicura.'
+        : error?.code === 'auth/expired-action-code' || error?.code === 'auth/invalid-action-code'
+          ? 'Questo link è scaduto o è già stato utilizzato. Richiedi una nuova email.'
+          : 'Non è stato possibile aggiornare la password. Riprova.';
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   openPasswordReset(): void {
