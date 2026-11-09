@@ -1,5 +1,5 @@
 <main class="auth-page">
-  <section class="auth-card" [class.mode-transition]="modeTransition" aria-labelledby="auth-title">
+  <section class="auth-card" [class.mode-transition]="modeTransition" [class.email-action-complete]="emailVerificationActionDone" aria-labelledby="auth-title">
     <img class="app-icon" src="/icons/icon-192x192.png" alt="Family Calendar">
 
     <p class="eyebrow">IL TUO SPAZIO CONDIVISO</p>
@@ -18,10 +18,11 @@
         <div class="email-verification-result-icon" [class.is-error]="!emailVerificationActionSuccess" aria-hidden="true">
           {{ emailVerificationActionSuccess ? '✓' : '!' }}
         </div>
-        <h2>{{ emailVerificationActionSuccess ? 'Email verificata!' : 'Verifica non riuscita' }}</h2>
-        <p *ngIf="emailVerificationActionSuccess">Il tuo indirizzo email è stato confermato. Il tuo account Family Calendar è pronto.</p>
+        <p class="action-result-label">{{ emailVerificationActionSuccess ? 'ACCOUNT ATTIVO' : 'LINK NON VALIDO' }}</p>
+        <h2>{{ emailVerificationActionSuccess ? 'Email confermata!' : 'Verifica non riuscita' }}</h2>
+        <p class="action-result-copy" *ngIf="emailVerificationActionSuccess">Il tuo indirizzo è stato verificato. Tutto è pronto: accedi e inizia a organizzare gli impegni della tua famiglia.</p>
         <p class="message error" *ngIf="emailVerificationActionError" role="alert">{{ emailVerificationActionError }}</p>
-        <button class="primary-button" type="button" (click)="backFromEmailVerificationAction()">Vai all’accesso</button>
+        <button class="primary-button" type="button" (click)="backFromEmailVerificationAction()">Accedi a Family Calendar</button>
       </section>
     </ng-container>
     <ng-template #passwordActionOrLogin>
