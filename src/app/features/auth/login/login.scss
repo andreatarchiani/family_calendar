@@ -370,13 +370,6 @@ button:disabled {
 .forgot-password-link:hover,
 .back-to-login:hover { text-decoration: underline; }
 
-.password-reset-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px 0 2px;
-  text-align: center;
-}
 .reset-icon-symbol::after {
   content: '';
   position: absolute;
@@ -391,19 +384,6 @@ button:disabled {
   transform-origin: center;
   background: #f2f5f1;
 }
-.password-reset-view h2 {
-  margin: 0 0 9px;
-  color: #172b42;
-  font-size: 21px;
-  font-weight: 800;
-}
-.password-reset-view > p {
-  margin: 0 0 22px;
-  color: #718096;
-  font-size: 13px;
-  line-height: 1.55;
-}
-.password-reset-view .auth-form { width: 100%; text-align: left; }
 .back-to-login {
   margin-top: 18px;
   padding: 8px 12px;
@@ -418,9 +398,6 @@ button:disabled {
 
 
 /* Password reset: visual language aligned with the Family Calendar auth card */
-.password-reset-view {
-  animation: auth-mode-enter .32s cubic-bezier(.2, .75, .25, 1) both;
-}
 .reset-icon-symbol::after {
   content: '';
   position: absolute;
@@ -434,16 +411,6 @@ button:disabled {
   transform: rotate(45deg) scale(.68);
   transform-origin: center;
   background: #f2f5f1;
-}
-.password-reset-view h2 {
-  letter-spacing: -.35px;
-}
-.password-reset-view > p {
-  max-width: 315px;
-  margin-bottom: 24px;
-}
-.password-reset-view .auth-form {
-  gap: 14px;
 }
 .password-reset-view .reset-submit-button {
   min-height: 50px;
