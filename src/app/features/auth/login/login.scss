@@ -1,274 +1,249 @@
-/* =========================
-   LOGIN PAGE
-========================= */
-
-
 :host {
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    min-height: 100vh;
-
-    padding: 20px;
-
-    background: #f5f7fb;
-
+  display: block;
+  min-height: 100vh;
 }
 
+.auth-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 20px 64px;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(33, 150, 243, .10), transparent 32%),
+    radial-gradient(circle at 88% 88%, rgba(76, 175, 80, .08), transparent 30%),
+    #f5f7fb;
+}
 
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  box-sizing: border-box;
+  padding: 34px;
+  border: 1px solid rgba(224, 230, 239, .9);
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 18px 55px rgba(28, 48, 76, .10);
+}
 
+.brand-mark {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 18px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #2196f3, #1976d2);
+  box-shadow: 0 8px 18px rgba(33, 150, 243, .22);
+}
+
+.brand-mark-inner {
+  color: #fff;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #64809b;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.7px;
+}
 
 h1 {
-
-    position: absolute;
-
-    top: 70px;
-
-    width: 100%;
-
-    text-align: center;
-
-    margin: 0;
-
-    font-size: 34px;
-
-    font-weight: 800;
-
-    color: #2196f3;
-
+  margin: 0;
+  color: #172b42;
+  text-align: center;
+  font-size: 29px;
+  font-weight: 800;
+  letter-spacing: -.8px;
 }
 
-
-
-
-
-.login-box {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 16px;
-
-
-    width: 100%;
-
-    max-width: 380px;
-
-
-    padding: 32px;
-
-
-    background: white;
-
-
-    border-radius: 28px;
-
-
-    box-shadow:
-
-        0 8px 30px rgba(0, 0, 0, .08);
-
+.intro {
+  max-width: 310px;
+  margin: 10px auto 24px;
+  color: #718096;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.55;
 }
 
-
-
-
-
-input {
-
-
-    width: 100%;
-
-    box-sizing: border-box;
-
-
-    padding: 14px 16px;
-
-
-    border-radius: 14px;
-
-
-    border: 1px solid #dfe3eb;
-
-
-    background: #fafafa;
-
-
-    font-size: 16px;
-
-
-    outline: none;
-
-
+.mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 22px;
+  border-radius: 14px;
+  background: #f1f4f8;
 }
 
-
-
-
-input:focus {
-
-
-    background: white;
-
-
-    border-color: #2196f3;
-
-
+.mode-switch button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #718096;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease;
 }
 
-
-
-
-
-button {
-
-
-    margin-top: 8px;
-
-
-    padding: 14px;
-
-
-    border: none;
-
-
-    border-radius: 18px;
-
-
-    background: #2196f3;
-
-
-    color: white;
-
-
-    font-size: 16px;
-
-
-    font-weight: 700;
-
-
-    cursor: pointer;
-
-
+.mode-switch button.active {
+  background: #fff;
+  color: #1976d2;
+  box-shadow: 0 2px 8px rgba(28, 48, 76, .08);
 }
 
-
-
-
-
-button:hover {
-
-    background: #1976d2;
-
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
 
+.auth-form label span {
+  color: #34465a;
+  font-size: 12px;
+  font-weight: 700;
+}
 
+.auth-form input {
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border: 1px solid #dfe5ed;
+  border-radius: 13px;
+  outline: none;
+  background: #fbfcfe;
+  color: #24364b;
+  font: inherit;
+  font-size: 14px;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
 
+.auth-form input:focus {
+  border-color: #2196f3;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, .10);
+}
 
+.primary-button,
+.google-button {
+  width: 100%;
+  min-height: 49px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+}
 
+.primary-button {
+  margin-top: 3px;
+  border: 0;
+  background: #2196f3;
+  color: #fff;
+  box-shadow: 0 7px 16px rgba(33, 150, 243, .20);
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #1976d2;
+  box-shadow: 0 9px 20px rgba(33, 150, 243, .25);
+  transform: translateY(-1px);
+}
 
 .google-button {
-
-
-    display: flex;
-
-
-    align-items: center;
-
-
-    justify-content: center;
-
-
-    gap: 12px;
-
-
-
-    background: white;
-
-
-    color: #444;
-
-
-    border: 1px solid #dadce0;
-
-
-
+  border: 1px solid #dfe5ed;
+  background: #fff;
+  color: #34465a;
 }
 
-
-
-
+.google-button:hover:not(:disabled) {
+  background: #f8fafc;
+}
 
 .google-button img {
-
-
-    width: 20px;
-
-
-    height: 20px;
-
-
+  width: 19px;
+  height: 19px;
+  object-fit: contain;
 }
 
-
-
-
-
-.google-button:hover {
-
-
-    background: #f7f7f7;
-
-
+button:disabled {
+  opacity: .65;
+  cursor: wait;
 }
 
+.separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 16px;
+  color: #9aa7b5;
+  font-size: 11px;
+}
 
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e9edf2;
+}
 
+.message {
+  margin: 0;
+  padding: 11px 12px;
+  border-radius: 11px;
+  font-size: 12px;
+  line-height: 1.45;
+}
 
+.message.error {
+  background: #fff1f0;
+  color: #c62828;
+}
 
+.message.success {
+  background: #edf8f0;
+  color: #247a3c;
+}
 
-
-p {
-
-
-    margin: 0;
-
-
-    padding: 12px;
-
-
-    border-radius: 12px;
-
-
-    background: #ffebee;
-
-
-    color: #c62828;
-
-
-    text-align: center;
-
-
+.terms {
+  margin: 16px 0 0;
+  color: #8a98a8;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .version {
+  position: fixed;
+  bottom: 15px;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  color: #98a4b2;
+  text-align: center;
+  font-size: 11px;
+}
 
-    position: fixed;
-
-    bottom: 20px;
-
-    width: 100%;
-
-    text-align: center;
-
-    color: #777;
-
-    font-size: 13px;
-
+@media (max-width: 480px) {
+  .auth-page { padding: 20px 14px 54px; }
+  .auth-card { padding: 27px 22px; border-radius: 24px; }
+  h1 { font-size: 26px; }
 }
