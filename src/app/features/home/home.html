@@ -35,49 +35,46 @@
 
     <section class="future-events">
 
+        @if (isLoading) {
+
+        <div class="loading-state">
+            <mat-spinner diameter="32"></mat-spinner>
+            <p>Caricamento eventi...</p>
+        </div>
+
+        } @else {
 
         @if(futureEventGroups$ | async; as groups) {
 
-
         @if(groups.length > 0) {
 
-
         @for(group of groups; track group.title) {
-
 
         <h2 class="group-title">
             {{ group.title }}
         </h2>
 
-
-
         @for(event of group.events; track event.id) {
-
 
         <app-event-card [event]="event" [currentUserId]="currentUser.currentUser?.uid" (edit)="editEvent($event)"
             (delete)="deleteEvent($event)">
         </app-event-card>
 
-
         }
 
-
         }
-
 
         } @else {
-
 
         <p class="empty-state">
             Nessun evento programmato
         </p>
 
+        }
 
         }
 
-
         }
-
 
     </section>
 
