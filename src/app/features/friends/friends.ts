@@ -135,7 +135,16 @@ export class Friends implements OnInit {
     try {
       const result = await this.friendshipService.acceptInvite(token, this.currentUser.uid);
       await this.loadData();
-      this.snackBar.open(result === 'accepted' ? 'Invito accettato: ora siete amici!' : 'Siete già amici.', 'OK', { duration: 3500 });
+      if (result === 'accepted') {
+        this.snackBar.open('✨ Amicizia attivata! Ora siete amici su Family Calendar.', 'Perfetto', {
+          duration: 4500,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+          panelClass: ['friend-invite-success-snackbar']
+        });
+      } else {
+        this.snackBar.open('Siete già amici. 💙', 'OK', { duration: 3000 });
+      }
     } catch (error) {
       console.error('Errore accettazione invito condiviso', error);
       this.snackBar.open(error instanceof Error ? error.message : 'Impossibile accettare l’invito.', 'OK', { duration: 3500 });
