@@ -8,6 +8,23 @@
       {{ mode === 'register' ? 'Crea il tuo account e organizza la quotidianità insieme alla tua famiglia.' : 'Accedi per ritrovare tutti gli impegni della tua famiglia.' }}
     </p>
 
+    <ng-container *ngIf="emailVerificationActionLoading || emailVerificationActionDone; else passwordActionOrLogin">
+      <div class="password-action-state" *ngIf="emailVerificationActionLoading">
+        <span class="loading-spinner" aria-hidden="true"></span>
+        <h2>Verifica del tuo indirizzo</h2>
+        <p>Stiamo confermando la tua email in modo sicuro…</p>
+      </div>
+      <section class="email-verification-result" *ngIf="emailVerificationActionDone" aria-live="polite">
+        <div class="email-verification-result-icon" [class.is-error]="!emailVerificationActionSuccess" aria-hidden="true">
+          {{ emailVerificationActionSuccess ? '✓' : '!' }}
+        </div>
+        <h2>{{ emailVerificationActionSuccess ? 'Email verificata!' : 'Verifica non riuscita' }}</h2>
+        <p *ngIf="emailVerificationActionSuccess">Il tuo indirizzo email è stato confermato. Il tuo account Family Calendar è pronto.</p>
+        <p class="message error" *ngIf="emailVerificationActionError" role="alert">{{ emailVerificationActionError }}</p>
+        <button class="primary-button" type="button" (click)="backFromEmailVerificationAction()">Vai all’accesso</button>
+      </section>
+    </ng-container>
+    <ng-template #passwordActionOrLogin>
     <ng-container *ngIf="passwordActionLoading || passwordActionReady; else normalLogin">
       <div class="password-action-state" *ngIf="passwordActionLoading">
         <span class="loading-spinner" aria-hidden="true"></span>
@@ -47,6 +64,7 @@
         <button class="back-to-login" type="button" (click)="backToLogin()">Torna all’accesso</button>
       </section>
     </ng-container>
+    </ng-template>
     <ng-template #normalLogin>
     <ng-container *ngIf="!awaitingVerification; else verificationPending">
     <ng-container *ngIf="!showPasswordReset; else passwordResetView">
