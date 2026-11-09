@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -13,7 +13,7 @@ import { APP_CONFIG } from '../../../core/config/app-config';
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class Login implements OnInit {
+export class Login implements OnInit, OnDestroy {
   private authService = inject(Auth);
   private userService = inject(UserService);
   private router = inject(Router);
@@ -29,8 +29,16 @@ export class Login implements OnInit {
   isLoading = false;
   awaitingVerification = false;
   pendingEmail = '';
+  private pendingPassword = '';
+  private verificationPollId: ReturnType<typeof setInterval> | null = null;
+  private verificationCheckRunning = false;
 
   appVersion = APP_CONFIG.version;
+
+  ngOnDestroy(): void {
+    this.stopVerificationPolling();
+    this.pendingPassword = '';
+  }
 
   ngOnInit(): void {
     const verified = this.route.snapshot.queryParamMap.get('verified');
@@ -52,6 +60,8 @@ export class Login implements OnInit {
     this.errorMessage = '';
     try {
       sessionStorage.removeItem('familyCalendar.pendingVerificationEmail');
+      this.stopVerificationPolling();
+      this.pendingPassword = '';
       this.awaitingVerification = false;
       this.mode = 'register';
       this.password = '';
@@ -94,6 +104,50 @@ export class Login implements OnInit {
       this.errorMessage = 'Email verificata. Accedi per continuare.';
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  private startVerificationPolling(): void {
+    this.stopVerificationPolling();
+    // Controlla periodicamente lo stato dell'account anche se la verifica viene fatta da un altro dispositivo.
+    this.verificationPollId = setInterval(() => {
+      void this.checkEmailVerificationFromOtherDevice();
+    }, 15000);
+  }
+
+  private stopVerificationPolling(): void {
+    if (this.verificationPollId !== null) {
+      clearInterval(this.verificationPollId);
+      this.verificationPollId = null;
+    }
+  }
+
+  private async checkEmailVerificationFromOtherDevice(): Promise<void> {
+    if (this.verificationCheckRunning || !this.pendingEmail || !this.pendingPassword) return;
+    this.verificationCheckRunning = true;
+    try {
+      const credential = await this.authService.login(this.pendingEmail, this.pendingPassword);
+      if (!credential.user.emailVerified) {
+        await this.authService.logout();
+        return;
+      }
+
+      await this.userService.createUserIfNotExists(
+        credential.user.uid,
+        credential.user.displayName || this.pendingEmail.split('@')[0] || 'Utente',
+        credential.user.email || this.pendingEmail,
+        credential.user.photoURL || undefined
+      );
+      this.stopVerificationPolling();
+      this.pendingPassword = '';
+      sessionStorage.removeItem('familyCalendar.pendingVerificationEmail');
+      this.awaitingVerification = false;
+      this.navigateAfterLogin();
+    } catch (error) {
+      // Errori temporanei di rete non devono interrompere il controllo automatico.
+      console.warn('Controllo verifica email non riuscito, verrà riprovato.', error);
+    } finally {
+      this.verificationCheckRunning = false;
     }
   }
 
@@ -171,13 +225,16 @@ export class Login implements OnInit {
 
     this.isLoading = true;
     try {
+      this.pendingPassword = this.password;
       await this.authService.registerWithEmail(normalizedEmail, this.password, normalizedName);
       this.pendingEmail = normalizedEmail;
       this.awaitingVerification = true;
       sessionStorage.setItem('familyCalendar.pendingVerificationEmail', normalizedEmail);
       this.password = '';
       this.confirmPassword = '';
+      this.startVerificationPolling();
     } catch (error: any) {
+      this.pendingPassword = '';
       console.error('Errore registrazione', error);
       this.errorMessage = this.getAuthErrorMessage(error, 'register');
     } finally {
