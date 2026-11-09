@@ -224,3 +224,38 @@ body {
     min-width: calc(100vw - 24px) !important;
   }
 }
+
+
+/* Notifica dedicata all'accettazione di un invito Family Calendar */
+.friend-invite-success-snackbar .mdc-snackbar__surface {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(111, 190, 145, .38);
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #173d35, #24594b) !important;
+  box-shadow: 0 12px 32px rgba(20, 55, 45, .28) !important;
+}
+.friend-invite-success-snackbar .mdc-snackbar__surface::before {
+  content: "✓";
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(168, 235, 194, .18);
+  color: #a8ebc2;
+  font-size: 18px;
+  font-weight: 800;
+}
+.friend-invite-success-snackbar .mdc-snackbar__label {
+  color: #f2fff7 !important;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+.friend-invite-success-snackbar .mat-mdc-snack-bar-action {
+  color: #b9f0ce !important;
+  font-weight: 750;
+}
