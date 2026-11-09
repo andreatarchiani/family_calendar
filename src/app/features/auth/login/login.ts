@@ -26,6 +26,10 @@ export class Login implements OnInit, OnDestroy {
   passwordActionCode = '';
   passwordActionReady = false;
   passwordActionLoading = false;
+  emailVerificationActionLoading = false;
+  emailVerificationActionDone = false;
+  emailVerificationActionSuccess = false;
+  emailVerificationActionError = '';
   newPassword = '';
   confirmNewPassword = '';
   showPasswordReset = false;
@@ -59,6 +63,12 @@ export class Login implements OnInit, OnDestroy {
     const actionMode = this.route.snapshot.queryParamMap.get('mode');
     const actionCode = this.route.snapshot.queryParamMap.get('oobCode');
 
+    if (actionMode === 'verifyEmail' && actionCode) {
+      this.emailVerificationActionLoading = true;
+      void this.handleVerifyEmailAction(actionCode);
+      return;
+    }
+
     if (actionMode === 'resetPassword' && actionCode) {
       this.passwordActionCode = actionCode;
       this.passwordActionLoading = true;
@@ -81,6 +91,27 @@ export class Login implements OnInit, OnDestroy {
     if (verified === '1') {
       void this.handleEmailVerificationReturn();
     }
+  }
+
+  private async handleVerifyEmailAction(actionCode: string): Promise<void> {
+    try {
+      await this.authService.applyEmailVerificationCode(actionCode);
+      this.emailVerificationActionSuccess = true;
+      sessionStorage.removeItem('familyCalendar.pendingVerificationEmail');
+    } catch (error: any) {
+      console.error('Errore durante la verifica dell’indirizzo email', error);
+      this.emailVerificationActionError =
+        error?.code === 'auth/expired-action-code' || error?.code === 'auth/invalid-action-code'
+          ? 'Questo link è scaduto o è già stato utilizzato. Accedi per controllare lo stato dell’account oppure richiedi un nuovo link.'
+          : 'Non è stato possibile verificare l’indirizzo email. Riprova o richiedi un nuovo link.';
+    } finally {
+      this.emailVerificationActionLoading = false;
+      this.emailVerificationActionDone = true;
+    }
+  }
+
+  backFromEmailVerificationAction(): void {
+    void this.router.navigate(['/login']);
   }
 
   async cancelVerification(): Promise<void> {
