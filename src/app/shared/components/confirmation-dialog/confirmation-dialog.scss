@@ -1,0 +1,26 @@
+:host { display: block; }
+.confirmation-dialog {
+  width: min(100%, 390px);
+  padding: 30px 28px 24px;
+  color: #202633;
+  text-align: center;
+}
+.confirmation-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  border-radius: 19px;
+  color: #2868c7;
+  background: #edf4ff;
+}
+.confirmation-icon mat-icon { width: 30px; height: 30px; font-size: 30px; }
+.confirmation-icon.danger { color: #d64545; background: #fff0f0; }
+.confirmation-dialog h2 { margin: 0 0 10px; font-size: 21px; line-height: 1.25; font-weight: 800; }
+.confirmation-dialog p { margin: 0; color: #687386; font-size: 14px; line-height: 1.6; }
+.confirmation-actions { display: flex; justify-content: center; gap: 10px; margin-top: 26px; }
+.confirmation-actions button { min-width: 112px; min-height: 42px; border-radius: 12px; font-weight: 700; }
+.cancel-action { color: #596579; background: #f1f4f8; }
+.danger-action { color: #fff !important; background: #d64545 !important; }
+@media (max-width: 480px) { .confirmation-dialog { padding: 26px 20px 20px; } }
