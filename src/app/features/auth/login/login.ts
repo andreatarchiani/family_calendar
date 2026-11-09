@@ -169,20 +169,6 @@ export class Login implements OnInit {
     }
   }
 
-  async loginApple(): Promise<void> {
-    this.errorMessage = '';
-    this.isLoading = true;
-    try {
-      const firebaseUser = await this.authService.loginWithApple();
-      await this.finishSocialLogin(firebaseUser);
-    } catch (error: any) {
-      console.error('Errore login Apple', error);
-      this.errorMessage = this.getAuthErrorMessage(error, 'apple');
-    } finally {
-      this.isLoading = false;
-    }
-  }
-
   private async finishSocialLogin(firebaseUser: any): Promise<void> {
     if (!firebaseUser.emailVerified) {
       this.errorMessage = 'Non è stato possibile verificare l’indirizzo email del tuo account.';
@@ -198,7 +184,7 @@ export class Login implements OnInit {
     this.navigateAfterLogin();
   }
 
-  private getAuthErrorMessage(error: any, action: 'login' | 'register' | 'google' | 'apple'): string {
+  private getAuthErrorMessage(error: any, action: 'login' | 'register' | 'google'): string {
     switch (error?.code) {
       case 'auth/invalid-email':
         return 'L’indirizzo email non è valido.';
@@ -225,9 +211,7 @@ export class Login implements OnInit {
       default:
         return action === 'register'
           ? 'Non è stato possibile creare l’account. Riprova.'
-          : action === 'apple'
-            ? 'Errore durante l’accesso con Apple. Verifica anche la configurazione del provider in Firebase.'
-            : action === 'google'
+          : action === 'google'
               ? 'Errore durante l’accesso con Google. Riprova.'
               : 'Non è stato possibile accedere. Riprova.';
     }
