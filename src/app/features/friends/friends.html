@@ -9,17 +9,17 @@
 
     <section class="friend-code-card">
         <div class="card-topline">
-            <span class="card-icon"><mat-icon>qr_code_2</mat-icon></span>
-            <span class="card-kicker">IL TUO CODICE PERSONALE</span>
+            <span class="card-icon"><mat-icon>person_add</mat-icon></span>
+            <span class="card-kicker">INVITA NELLA TUA FAMILY CALENDAR</span>
         </div>
-        <h2>Fatti trovare facilmente</h2>
-        <p>Condividi questo codice con chi vuoi aggiungere. Potrà inserirlo nella propria pagina Amici per inviarti una richiesta.</p>
-        <div class="my-code-row">
-            <strong class="my-code">{{ friendCode || '------' }}</strong>
-            <button mat-stroked-button type="button" class="copy-code-button" (click)="copyFriendCode()" [disabled]="!friendCode">
-                <mat-icon>content_copy</mat-icon>
-                Copia codice
+        <h2>Condividi il calendario con chi vuoi</h2>
+        <p>Invia un invito con il tuo codice personale tramite WhatsApp, Instagram, Facebook, SMS e le altre app disponibili sul tuo dispositivo.</p>
+        <div class="invite-action-row">
+            <button mat-flat-button type="button" class="invite-button" (click)="inviteFriend()" [disabled]="!friendCode">
+                <mat-icon>send</mat-icon>
+                Invita
             </button>
+            <span class="invite-code-hint">Codice personale: <strong>{{ friendCode || '------' }}</strong></span>
         </div>
     </section>
 
