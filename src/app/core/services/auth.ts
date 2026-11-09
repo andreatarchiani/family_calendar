@@ -6,7 +6,6 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signOut,
-  deleteUser,
   authState,
   signInWithPopup,
   sendEmailVerification,
@@ -41,6 +40,8 @@ export class Auth {
     const result = await createUserWithEmailAndPassword(this.auth, email, password);
     await updateProfile(result.user, { displayName });
     await this.sendVerificationEmail(result.user);
+    // La creazione Firebase autentica automaticamente: chiudiamo subito la sessione.
+    await signOut(this.auth);
     return result.user;
   }
 
@@ -49,13 +50,6 @@ export class Auth {
       url: 'https://family-calendar-1e385.web.app/login?verified=1',
       handleCodeInApp: false
     });
-  }
-
-  async cancelUnverifiedRegistration() {
-    const user = this.auth.currentUser;
-    if (user && !user.emailVerified) {
-      await deleteUser(user);
-    }
   }
 
   async refreshUser(user: User) {
