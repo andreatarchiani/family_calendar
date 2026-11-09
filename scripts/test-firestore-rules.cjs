@@ -79,6 +79,24 @@ async function main() {
       await setDoc(doc(db, 'friendCodes/123456'), { uid: 'alice', name: 'Alice' });
       await setDoc(doc(db, 'friendCodes/234567'), { uid: 'bob', name: 'Bob' });
 
+      await setDoc(doc(db, 'users/inviteSender'), {
+        name: 'Invite Sender',
+        friends: ['inviteRecipient'],
+        lastAcceptedFriendshipId: 'invite_remove_invite_token'
+      });
+      await setDoc(doc(db, 'users/inviteRecipient'), {
+        name: 'Invite Recipient',
+        friends: []
+      });
+      await setDoc(doc(db, 'friendships/invite_remove_invite_token'), {
+        requesterId: 'inviteSender',
+        addresseeId: 'inviteRecipient',
+        requesterName: 'Invite Sender',
+        status: 'accepted',
+        createdAt: 1000,
+        inviteId: 'remove_invite_token'
+      });
+
       await setDoc(doc(db, 'friendships/alice__bob'), {
         requesterId: 'alice',
         addresseeId: 'bob',
@@ -305,6 +323,16 @@ async function main() {
       await assertSucceeds(batch.commit());
       await assertSucceeds(getDoc(doc(bob, 'users/alice')));
 
+    });
+
+    await test('Il destinatario può eliminare un’amicizia nata da link invito e rimuovere il riferimento dal profilo mittente', async () => {
+      const inviteRecipient = env.authenticatedContext('inviteRecipient').firestore();
+      const batch = writeBatch(inviteRecipient);
+      batch.delete(doc(inviteRecipient, 'friendships/invite_remove_invite_token'));
+      batch.update(doc(inviteRecipient, 'users/inviteSender'), {
+        friends: []
+      });
+      await assertSucceeds(batch.commit());
     });
 
     await test('Un utente non può accettare un invito a nome di un altro', () =>
