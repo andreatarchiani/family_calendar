@@ -101,7 +101,7 @@ export class Friends implements OnInit {
       const token = await this.friendshipService.createInvite(this.currentUser.uid, this.currentUser.name);
       const inviteUrl = new URL('/friends', window.location.origin);
       inviteUrl.searchParams.set('invite', token);
-      const inviteText = `Ti invito su Family Calendar! Apri questo link e diventeremo automaticamente amici: ${inviteUrl.toString()}`;
+      const inviteText = 'Ti invito su Family Calendar! Apri il link per diventare automaticamente amici.';
 
     if (typeof navigator.share === 'function') {
       try {
