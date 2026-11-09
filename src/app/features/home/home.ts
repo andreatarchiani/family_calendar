@@ -138,29 +138,30 @@ export class Home {
         switchMap(async events => {
           console.log('[FC HOME] Avvio caricamento preferenze e profili', events.length);
 
-          // Legge le preferenze una sola volta e chiude subito la sottoscrizione.
-          const preferences = await firstValueFrom(
-            this.friendColorService.getFriendColors(user.uid).pipe(
-              catchError(error => {
-                console.error('[FC HOME] ERRORE preferenze colori', error);
-                return from([{}]);
-              })
-            )
-          ) as FriendPreferences | undefined;
+          // Preferenze e profili sono indipendenti: recuperali in parallelo.
+          const authorIds = [...new Set(events.map(event => event.authorId).filter(Boolean))];
+
+          const [preferences, authorEntries] = await Promise.all([
+            firstValueFrom(
+              this.friendColorService.getFriendColors(user.uid).pipe(
+                catchError(error => {
+                  console.error('[FC HOME] ERRORE preferenze colori', error);
+                  return from([{}]);
+                })
+              )
+            ) as Promise<FriendPreferences | undefined>,
+            Promise.all(authorIds.map(async authorId => {
+              try {
+                return [authorId, await this.userService.getUserById(authorId)] as const;
+              } catch (error) {
+                console.error('[FC HOME] ERRORE caricamento profilo autore', authorId, error);
+                throw error;
+              }
+            }))
+          ]);
 
           const friendColors = preferences?.friendColors ?? {};
           const friendNames = preferences?.friendNames ?? {};
-
-          // Un solo recupero profilo per autore, anche se ha più eventi.
-          const authorIds = [...new Set(events.map(event => event.authorId).filter(Boolean))];
-          const authorEntries = await Promise.all(authorIds.map(async authorId => {
-            try {
-              return [authorId, await this.userService.getUserById(authorId)] as const;
-            } catch (error) {
-              console.error('[FC HOME] ERRORE caricamento profilo autore', authorId, error);
-              throw error;
-            }
-          }));
           const authors = new Map(authorEntries);
 
           const eventsWithUsers = events.map(event => {
