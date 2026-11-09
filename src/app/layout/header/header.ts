@@ -31,6 +31,12 @@ export class Header {
   appVersion = APP_CONFIG.version;
 
   async logout() {
+    const confirmed = window.confirm('Vuoi davvero uscire da Family Calendar?');
+
+    if (!confirmed) {
+      return;
+    }
+
     await this.auth.logout();
     this.router.navigate(['/login']);
   }
