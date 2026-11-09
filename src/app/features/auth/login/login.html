@@ -8,6 +8,47 @@
       {{ mode === 'register' ? 'Crea il tuo account e organizza la quotidianità insieme alla tua famiglia.' : 'Accedi per ritrovare tutti gli impegni della tua famiglia.' }}
     </p>
 
+    <ng-container *ngIf="passwordActionLoading || passwordActionReady; else normalLogin">
+      <div class="password-action-state" *ngIf="passwordActionLoading">
+        <span class="loading-spinner" aria-hidden="true"></span>
+        <h2>Verifica del link</h2>
+        <p>Stiamo preparando il ripristino della tua password…</p>
+      </div>
+      <section class="password-reset-view action-reset-view" *ngIf="passwordActionReady" aria-labelledby="password-action-title">
+        <p class="eyebrow">IL TUO SPAZIO CONDIVISO</p>
+        <h2 id="password-action-title">{{ passwordActionCode ? 'Scegli una nuova password' : 'Link non valido' }}</h2>
+        <p *ngIf="passwordActionCode">Imposta una nuova password per tornare a usare il tuo calendario.</p>
+        <p class="message error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
+        <form class="auth-form" *ngIf="passwordActionCode" (ngSubmit)="completePasswordReset()">
+          <label>
+            <span>Nuova password</span>
+            <div class="password-field">
+              <input [type]="showNewPassword ? 'text' : 'password'" name="newPassword" [(ngModel)]="newPassword"
+                placeholder="Almeno 6 caratteri" autocomplete="new-password" required minlength="6">
+              <button class="password-visibility" type="button" (click)="showNewPassword = !showNewPassword">
+                {{ showNewPassword ? 'Nascondi' : 'Mostra' }}
+              </button>
+            </div>
+          </label>
+          <label>
+            <span>Conferma nuova password</span>
+            <div class="password-field">
+              <input [type]="showConfirmPassword ? 'text' : 'password'" name="confirmNewPassword" [(ngModel)]="confirmNewPassword"
+                placeholder="Ripeti la nuova password" autocomplete="new-password" required>
+              <button class="password-visibility" type="button" (click)="showConfirmPassword = !showConfirmPassword">
+                {{ showConfirmPassword ? 'Nascondi' : 'Mostra' }}
+              </button>
+            </div>
+          </label>
+          <p class="message error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
+          <button class="primary-button" type="submit" [disabled]="isLoading">
+            {{ isLoading ? 'Salvataggio…' : 'Salva nuova password' }}
+          </button>
+        </form>
+        <button class="back-to-login" type="button" (click)="backToLogin()">Torna all’accesso</button>
+      </section>
+    </ng-container>
+    <ng-template #normalLogin>
     <ng-container *ngIf="!awaitingVerification; else verificationPending">
     <ng-container *ngIf="!showPasswordReset; else passwordResetView">
     <div class="mode-switch" role="tablist" aria-label="Accesso o registrazione">
@@ -32,8 +73,13 @@
 
       <label>
         <span>Password</span>
-        <input type="password" name="password" [(ngModel)]="password" placeholder="Almeno 6 caratteri"
-          [attr.autocomplete]="mode === 'register' ? 'new-password' : 'current-password'" required>
+        <div class="password-field">
+          <input [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" placeholder="Almeno 6 caratteri"
+            [attr.autocomplete]="mode === 'register' ? 'new-password' : 'current-password'" required>
+          <button class="password-visibility" type="button" (click)="showPassword = !showPassword">
+            {{ showPassword ? 'Nascondi' : 'Mostra' }}
+          </button>
+        </div>
       </label>
       <button *ngIf="mode === 'login'" class="forgot-password-link" type="button" (click)="openPasswordReset()">
         Hai dimenticato la password?
@@ -41,8 +87,13 @@
 
       <label *ngIf="mode === 'register'">
         <span>Conferma password</span>
-        <input type="password" name="confirmPassword" [(ngModel)]="confirmPassword"
-          placeholder="Ripeti la password" autocomplete="new-password" required>
+        <div class="password-field">
+          <input [type]="showConfirmPassword ? 'text' : 'password'" name="confirmPassword" [(ngModel)]="confirmPassword"
+            placeholder="Ripeti la password" autocomplete="new-password" required>
+          <button class="password-visibility" type="button" (click)="showConfirmPassword = !showConfirmPassword">
+            {{ showConfirmPassword ? 'Nascondi' : 'Mostra' }}
+          </button>
+        </div>
       </label>
 
       <p class="message error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
@@ -69,7 +120,6 @@
 
     <ng-template #passwordResetView>
       <section class="password-reset-view" aria-labelledby="password-reset-title">
-        <span class="reset-icon" aria-hidden="true"><span class="reset-icon-symbol"></span></span>
         <h2 id="password-reset-title">Reimposta la password</h2>
         <p>Inserisci l’indirizzo email associato al tuo account. Ti invieremo un link per scegliere una nuova password.</p>
         <form class="auth-form" (ngSubmit)="resetPassword()">
@@ -86,6 +136,7 @@
         </form>
         <button class="back-to-login" type="button" (click)="backToLogin()">Torna all’accesso</button>
       </section>
+    </ng-template>
     </ng-template>
 
     <ng-template #verificationPending>
