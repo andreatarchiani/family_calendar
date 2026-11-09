@@ -67,6 +67,29 @@ service cloud.firestore {
       );
     }
 
+    function canRemoveFriendReference(profileUserId) {
+      let oldFriends = resource.data.friends;
+      let newFriends = request.resource.data.friends;
+      return signedIn()
+        && oldFriends is list
+        && newFriends is list
+        && newFriends.size() == oldFriends.size() - 1
+        && oldFriends.hasAll(newFriends)
+        && (
+          (
+            exists(friendshipDoc(request.auth.uid, profileUserId))
+            && get(friendshipDoc(request.auth.uid, profileUserId)).data.status == 'accepted'
+            && !existsAfter(friendshipDoc(request.auth.uid, profileUserId))
+          )
+          ||
+          (
+            exists(friendshipDoc(profileUserId, request.auth.uid))
+            && get(friendshipDoc(profileUserId, request.auth.uid)).data.status == 'accepted'
+            && !existsAfter(friendshipDoc(profileUserId, request.auth.uid))
+          )
+        );
+    }
+
     function canReadUser(userId) {
       return signedIn() && (
         request.auth.uid == userId ||
@@ -96,6 +119,11 @@ service cloud.firestore {
               !request.resource.data.diff(resource.data).affectedKeys().hasAny(['friendCode'])
               || getAfter(/databases/$(database)/documents/friendCodes/$(request.resource.data.friendCode)).data.uid == userId
             )
+          )
+          ||
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
+            && canRemoveFriendReference(userId)
           )
           ||
           (
@@ -179,7 +207,12 @@ service cloud.firestore {
           )
         );
 
-      allow delete: if false;
+      allow delete: if signedIn()
+        && resource.data.status == 'accepted'
+        && (
+          resource.data.requesterId == request.auth.uid
+          || resource.data.addresseeId == request.auth.uid
+        );
     }
 
     match /events/{eventId} {
