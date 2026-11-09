@@ -75,16 +75,6 @@
     gap: 10px;
     width: 100%;
 }
-.qr-code-trigger {
-    display: flex;
-    flex: 0 0 35px;
-    align-items: center;
-    justify-content: center;
-    width: 35px;
-    height: 35px;
-    margin: 0;
-    padding: 0;
-}
 .card-icon {
     display: flex;
     align-items: center;
@@ -94,16 +84,6 @@
     border-radius: 11px;
     color: white;
     background: rgba(255,255,255,.15);
-}
-.qr-code-trigger mat-icon {
-    display: block;
-    flex: 0 0 24px;
-    width: 24px;
-    height: 24px;
-    margin: 0;
-    font-size: 24px;
-    line-height: 24px;
-    text-align: center;
 }
 .card-kicker {
     color: rgba(255,255,255,.72);
