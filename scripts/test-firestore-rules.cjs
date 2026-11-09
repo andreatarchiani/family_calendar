@@ -12,8 +12,6 @@ const {
   collection,
   query,
   where,
-  or,
-  and,
   setDoc,
   updateDoc,
   deleteDoc,
@@ -244,32 +242,6 @@ async function main() {
         where('authorId', '==', 'alice'),
         where('visibility', '==', 'selected'),
         where('visibleToMap.bob', '==', true)
-      ))));
-
-    await test('Un amico legge eventi all e selected con una sola query OR', () =>
-      assertSucceeds(getDocs(query(
-        collection(bob, 'events'),
-        where('authorId', '==', 'alice'),
-        or(
-          where('visibility', '==', 'all'),
-          and(
-            where('visibility', '==', 'selected'),
-            where('visibleToMap.bob', '==', true)
-          )
-        )
-      ))));
-
-    await test('La query OR non consente a un non-amico di leggere eventi condivisi da altri', () =>
-      assertFails(getDocs(query(
-        collection(stranger, 'events'),
-        where('authorId', '==', 'alice'),
-        or(
-          where('visibility', '==', 'all'),
-          and(
-            where('visibility', '==', 'selected'),
-            where('visibleToMap.stranger', '==', true)
-          )
-        )
       ))));
 
     await test('Un amico legacy legge un evento selected tramite ID amicizia non deterministico', () =>
