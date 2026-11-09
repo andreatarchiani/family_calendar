@@ -185,7 +185,7 @@ export class Login implements OnInit, OnDestroy {
       this.errorMessage = 'Inserisci prima il tuo indirizzo email.';
       return;
     }
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(normalizedEmail)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalizedEmail)) {
       this.errorMessage = 'Inserisci un indirizzo email valido.';
       return;
     }
