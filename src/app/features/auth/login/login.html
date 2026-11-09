@@ -9,6 +9,7 @@
     </p>
 
     <ng-container *ngIf="!awaitingVerification; else verificationPending">
+    <ng-container *ngIf="!showPasswordReset; else passwordResetView">
     <div class="mode-switch" role="tablist" aria-label="Accesso o registrazione">
       <button type="button" role="tab" [attr.aria-selected]="mode === 'login'"
         [class.active]="mode === 'login'" (click)="setMode('login')">Accedi</button>
@@ -34,6 +35,9 @@
         <input type="password" name="password" [(ngModel)]="password" placeholder="Almeno 6 caratteri"
           [attr.autocomplete]="mode === 'register' ? 'new-password' : 'current-password'" required>
       </label>
+      <button *ngIf="mode === 'login'" class="forgot-password-link" type="button" (click)="openPasswordReset()">
+        Ho dimenticato la password
+      </button>
 
       <label *ngIf="mode === 'register'">
         <span>Conferma password</span>
@@ -61,6 +65,28 @@
       Dopo la registrazione dovrai verificare il tuo indirizzo email per attivare l’account.
     </p>
     </ng-container>
+    </ng-container>
+
+    <ng-template #passwordResetView>
+      <section class="password-reset-view">
+        <span class="reset-icon" aria-hidden="true">✉</span>
+        <h2>Reimposta la password</h2>
+        <p>Inserisci l’indirizzo email associato al tuo account. Ti invieremo un link per scegliere una nuova password.</p>
+        <form class="auth-form" (ngSubmit)="resetPassword()">
+          <label>
+            <span>Email</span>
+            <input type="email" name="resetEmail" [(ngModel)]="email" placeholder="nome@email.com"
+              autocomplete="email" required>
+          </label>
+          <p class="message error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
+          <p class="message success" *ngIf="successMessage" role="status">{{ successMessage }}</p>
+          <button class="primary-button" type="submit" [disabled]="isLoading">
+            {{ isLoading ? 'Invio in corso...' : 'Invia link di reset' }}
+          </button>
+        </form>
+        <button class="back-to-login" type="button" (click)="backToLogin()">Torna all’accesso</button>
+      </section>
+    </ng-template>
 
     <ng-template #verificationPending>
       <div class="verification-pending" role="status" aria-live="polite">
