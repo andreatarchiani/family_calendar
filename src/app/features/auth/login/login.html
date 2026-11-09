@@ -133,6 +133,7 @@
             {{ isLoading ? 'Invio in corso...' : 'Invia link di reset' }}
           </button>
         </form>
+        <button class="primary-button" *ngIf="successMessage" type="button" (click)="finishPasswordResetOnThisDevice()">Ho già cambiato la password</button>
         <button class="back-to-login" type="button" (click)="backToLogin()">Torna all’accesso</button>
       </section>
     </ng-template>
