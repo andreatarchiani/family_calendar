@@ -27,21 +27,13 @@
   box-shadow: 0 18px 55px rgba(28, 48, 76, .10);
 }
 
-.brand-mark {
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
+.app-icon {
+  display: block;
+  width: 66px;
+  height: 66px;
   margin: 0 auto 18px;
+  object-fit: contain;
   border-radius: 16px;
-  background: linear-gradient(145deg, #2196f3, #1976d2);
-  box-shadow: 0 8px 18px rgba(33, 150, 243, .22);
-}
-
-.brand-mark-inner {
-  color: #fff;
-  font-size: 25px;
-  font-weight: 800;
 }
 
 .eyebrow {
@@ -139,7 +131,7 @@ h1 {
 }
 
 .primary-button,
-.google-button {
+.social-button {
   width: 100%;
   min-height: 49px;
   display: flex;
@@ -167,20 +159,26 @@ h1 {
   transform: translateY(-1px);
 }
 
-.google-button {
+.social-button {
   border: 1px solid #dfe5ed;
   background: #fff;
   color: #34465a;
 }
 
-.google-button:hover:not(:disabled) {
+.social-button:hover:not(:disabled) {
   background: #f8fafc;
 }
 
-.google-button img {
+.social-button img,
+.social-button svg {
   width: 19px;
   height: 19px;
   object-fit: contain;
+  fill: currentColor;
+}
+
+.apple-button {
+  margin-top: 10px;
 }
 
 button:disabled {
