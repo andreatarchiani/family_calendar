@@ -96,6 +96,17 @@ service cloud.firestore {
                 && get(friendshipDoc(profileUserId, request.auth.uid)).data.status == 'accepted'
                 && !existsAfter(friendshipDoc(profileUserId, request.auth.uid))
               )
+              ||
+              (
+                resource.data.keys().hasAny(['lastAcceptedFriendshipId'])
+                && resource.data.lastAcceptedFriendshipId is string
+                && acceptedFriendshipById(
+                  resource.data.lastAcceptedFriendshipId,
+                  profileUserId,
+                  request.auth.uid
+                )
+                && !existsAfter(/databases/$(database)/documents/friendships/$(resource.data.lastAcceptedFriendshipId))
+              )
             )
           )
         );
