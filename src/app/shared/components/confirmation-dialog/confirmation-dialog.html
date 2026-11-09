@@ -1,0 +1,15 @@
+<section class="confirmation-dialog" role="alertdialog" aria-modal="true">
+  <div class="confirmation-icon" [class.danger]="data.danger">
+    <mat-icon>{{ data.icon || 'help_outline' }}</mat-icon>
+  </div>
+  <h2>{{ data.title }}</h2>
+  <p>{{ data.message }}</p>
+  <div class="confirmation-actions">
+    <button mat-button type="button" class="cancel-action" (click)="close(false)">
+      {{ data.cancelText || 'Annulla' }}
+    </button>
+    <button mat-flat-button type="button" [class.danger-action]="data.danger" (click)="close(true)">
+      {{ data.confirmText || 'Conferma' }}
+    </button>
+  </div>
+</section>
