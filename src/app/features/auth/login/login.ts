@@ -194,6 +194,7 @@ export class Login implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Link di reimpostazione password non valido o scaduto', error);
       this.errorMessage = 'Questo link non è valido o è scaduto. Richiedi una nuova email di reimpostazione.';
+      this.passwordActionReady = true;
     } finally {
       this.passwordActionLoading = false;
     }
