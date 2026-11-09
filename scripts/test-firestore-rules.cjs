@@ -298,7 +298,12 @@ async function main() {
         createdAt: Date.now(),
         inviteId: 'test-invite-token-1234567890abcdef'
       });
+      batch.update(doc(bob, 'users/alice'), {
+        friends: ['bob'],
+        lastAcceptedFriendshipId: 'invite_test-invite-token-1234567890abcdef'
+      });
       await assertSucceeds(batch.commit());
+      await assertSucceeds(getDoc(doc(bob, 'users/alice')));
 
     });
 
