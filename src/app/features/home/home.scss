@@ -157,6 +157,23 @@
 
 
 
+/* CARICAMENTO EVENTI */
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 150px;
+    color: #757575;
+}
+
+.loading-state p {
+    margin: 0;
+    font-size: 14px;
+}
+
 /* NESSUN EVENTO */
 
 
