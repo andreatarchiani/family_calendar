@@ -51,11 +51,179 @@
 }
 
 .header-decoration {
-        flex-basis: 48px;
-        width: 48px;
-        height: 48px;
-        margin-right: 0;
-        border-radius: 15px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 58px;
+    width: 58px;
+    height: 58px;
+    margin-right: 0;
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 18px;
+    background: rgba(255,255,255,.14);
+}
+
+.header-decoration mat-icon {
+    width: 34px;
+    height: 34px;
+    color: white;
+    font-size: 34px;
+}
+
+.event-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+    margin: 0 auto;
+    padding: 30px;
+    box-sizing: border-box;
+    border: 1px solid var(--mat-sys-outline-variant, #e1e5ec);
+    border-radius: 24px;
+    background: var(--mat-sys-surface, #fff);
+    box-shadow: 0 8px 32px rgba(25, 45, 80, 0.07);
+}
+
+.form-section {
+    padding: 23px 0 7px;
+    border-top: 1px solid var(--mat-sys-outline-variant, #e7eaf0);
+}
+
+.section-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 17px;
+}
+
+.section-number {
+    display: grid;
+    place-items: center;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    color: var(--mat-sys-primary, #2868c7);
+    background: var(--mat-sys-primary-container, #e8f0ff);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.section-heading h3 {
+    margin: 0;
+    color: var(--mat-sys-on-surface, #202633);
+    font-size: 16px;
+    line-height: 1.3;
+    font-weight: 700;
+}
+
+.section-heading p {
+    margin: 3px 0 0;
+    color: var(--mat-sys-on-surface-variant, #687386);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.time-field {
+    width: calc(50% - 6px);
+}
+
+mat-form-field {
+    min-width: 0;
+}
+
+:host ::ng-deep .mat-mdc-form-field {
+    --mdc-outlined-text-field-container-shape: 13px;
+}
+
+.notes-field textarea {
+    resize: vertical;
+    min-height: 72px;
+}
+
+.error-message {
+    margin: -7px 0 14px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: var(--mat-sys-on-error-container, #8c2525);
+    background: var(--mat-sys-error-container, #ffdad6);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.friends-picker {
+    margin: -3px 0 14px;
+    padding: 15px;
+    border: 1px solid var(--mat-sys-outline-variant, #e1e5ec);
+    border-radius: 14px;
+    background: var(--mat-sys-surface-container-low, #f7f8fb);
+}
+
+.friends-label {
+    margin: 0 0 10px;
+    color: var(--mat-sys-on-surface, #202633);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.friends-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+}
+
+.friend-option {
+    min-width: 0;
+}
+
+.empty-friends {
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant, #687386);
+    font-size: 13px;
+}
+
+.form-actions {
+    padding-top: 20px;
+    margin-top: 12px;
+    border-top: 1px solid var(--mat-sys-outline-variant, #e7eaf0);
+    text-align: center;
+}
+
+.save-button {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 14px;
+    color: #fff !important;
+    background: #2868c7 !important;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .1px;
+    box-shadow: 0 5px 14px rgba(40, 104, 199, .2);
+}
+
+.save-button:disabled {
+    opacity: .5;
+    box-shadow: none;
+}
+
+.save-hint {
+    margin: 10px 0 0;
+    color: var(--mat-sys-on-surface-variant, #7a8494);
+    font-size: 11px;
+}
+
+@media (max-width: 600px) {
+    :host {
+        padding: 12px 10px calc(28px + env(safe-area-inset-bottom, 0px));
     }
 
     .event-page-header {
@@ -75,11 +243,11 @@
     }
 
     .header-decoration {
-        flex-basis: 72px;
-        width: 72px;
-        height: 72px;
+        flex-basis: 48px;
+        width: 48px;
+        height: 48px;
         margin-right: 0;
-        border-radius: 23px;
+        border-radius: 15px;
     }
 
     .header-decoration mat-icon {
