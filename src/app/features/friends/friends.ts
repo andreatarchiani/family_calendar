@@ -6,7 +6,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { filter, take } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { filter, firstValueFrom, take } from 'rxjs';
+import { ConfirmationDialog } from '../../shared/components/confirmation-dialog/confirmation-dialog';
 
 import { User } from '../../core/models/user';
 import { CurrentUser } from '../../core/services/current-user';
@@ -28,6 +30,7 @@ export class Friends implements OnInit {
   private friendshipService = inject(FriendshipService);
   private friendColorService = inject(FriendColorService);
   private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
 
   currentUser: User | null = null;
   searchTerm = '';
@@ -209,9 +212,19 @@ export class Friends implements OnInit {
     if (!this.currentUser?.uid) return;
 
     const displayName = this.friendNames[friend.uid] || friend.name || 'questo amico';
-    const confirmed = window.confirm(
-      `Vuoi davvero eliminare ${displayName} dai tuoi amici? Non vedrete più gli eventi condivisi tra i vostri profili.`
-    );
+    const confirmed = await firstValueFrom(this.dialog.open(ConfirmationDialog, {
+      data: {
+        title: 'Eliminare questo amico?',
+        message: `Vuoi davvero eliminare ${displayName} dai tuoi amici? Non vedrete più gli eventi condivisi tra i vostri profili.`,
+        confirmText: 'Elimina amico',
+        cancelText: 'Annulla',
+        icon: 'person_remove',
+        danger: true
+      },
+      panelClass: 'family-confirm-panel',
+      maxWidth: 'calc(100vw - 32px)',
+      autoFocus: false
+    }).afterClosed());
     if (!confirmed) return;
 
     try {
