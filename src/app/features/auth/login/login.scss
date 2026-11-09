@@ -528,43 +528,8 @@ button:disabled {
 .password-reset-view h2 { margin:0 0 9px; color:#172b42; font-size:21px; font-weight:800; }
 
 
-/* Conferma email: schermata dedicata nello stile Family Calendar */
-.email-verification-result {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 22px 4px 8px;
-  text-align: center;
-}
-.email-verification-result-icon {
-  display: grid;
-  place-items: center;
-  width: 62px;
-  height: 62px;
-  margin-bottom: 18px;
-  border-radius: 50%;
-  background: #eaf7ee;
-  color: #26934b;
-  font-size: 34px;
-  font-weight: 800;
-}
-.email-verification-result-icon.is-error {
-  background: #fff1f0;
-  color: #c62828;
-}
-.email-verification-result h2 {
-  margin: 0 0 10px;
-  color: #172b42;
-  font-size: 22px;
-  font-weight: 800;
-}
-.email-verification-result > p:not(.message) {
-  max-width: 310px;
-  margin: 0 0 22px;
-  color: #718096;
-  font-size: 13px;
-  line-height: 1.6;
-}
-.email-verification-result .primary-button {
-  margin-top: 12px;
-}
+.email-verification-result{text-align:center;padding:20px 4px 8px}
+.email-verification-result-icon{display:grid;place-items:center;width:60px;height:60px;margin:0 auto 16px;border-radius:50%;background:#eaf7ee;color:#26934b;font-size:32px;font-weight:800}
+.email-verification-result-icon.is-error{background:#fff1f0;color:#c62828}
+.email-verification-result h2{margin:0 0 10px;color:#172b42;font-size:22px;font-weight:800}
+.email-verification-result>p:not(.message){max-width:310px;margin:0 auto 22px;color:#718096;font-size:13px;line-height:1.6}
