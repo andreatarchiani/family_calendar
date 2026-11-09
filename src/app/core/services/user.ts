@@ -176,6 +176,24 @@ export class UserService {
     };
   }
 
+  async updateName(uid: string, name: string): Promise<void> {
+    const userRef = doc(this.firestore, 'users', uid);
+    const cachedUser = this.userCache.get(uid);
+    const friendCode = cachedUser?.friendCode;
+    const batch = writeBatch(this.firestore);
+
+    batch.update(userRef, { name });
+    if (typeof friendCode === 'string' && /^\\d{6}$/.test(friendCode)) {
+      batch.update(doc(this.firestore, 'friendCodes', friendCode), { name });
+    }
+    await batch.commit();
+
+    if (cachedUser) {
+      cachedUser.name = name;
+      this.userCache.set(uid, cachedUser);
+    }
+  }
+
   async updateColor(uid: string, color: string): Promise<void> {
     await updateDoc(
       doc(this.firestore, 'users', uid),
