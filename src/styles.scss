@@ -65,6 +65,13 @@ body {
 
 /* QR code invitation dialog */
 .qr-code-trigger {
+    display: flex;
+    flex: 0 0 35px;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    margin: 0;
     padding: 0;
     border: 1px solid rgba(255,255,255,.28);
     border-radius: 11px;
@@ -72,7 +79,17 @@ body {
     background: rgba(255,255,255,.15);
     cursor: pointer;
 }
-.qr-code-trigger mat-icon { color: white; }
+.qr-code-trigger mat-icon {
+    display: block;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    color: white;
+    font-size: 24px;
+    line-height: 24px;
+    text-align: center;
+}
 .qr-code-trigger:disabled { opacity: .45; }
 .qr-modal-backdrop {
     position: fixed;
