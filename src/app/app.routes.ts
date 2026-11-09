@@ -6,10 +6,15 @@ export const routes: Routes = [
 
     // Branded Firebase email action handler (verification and password reset).
     {
-        path: 'auth/action',
-        loadComponent: () =>
-            import('./features/auth/login/login')
-                .then(m => m.Login)
+        path: 'auth',
+        children: [
+            {
+                path: 'action',
+                loadComponent: () =>
+                    import('./features/auth/login/login')
+                        .then(m => m.Login)
+            }
+        ]
     },
 
     {
