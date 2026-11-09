@@ -14,7 +14,7 @@
         <h2>Verifica del tuo indirizzo</h2>
         <p>Stiamo confermando la tua email in modo sicuro…</p>
       </div>
-      <section class="email-verification-result" *ngIf="emailVerificationActionDone" aria-live="polite">
+      <section class="email-verification-result password-action-state" *ngIf="emailVerificationActionDone" aria-live="polite">
         <div class="email-verification-result-icon" [class.is-error]="!emailVerificationActionSuccess" aria-hidden="true">
           {{ emailVerificationActionSuccess ? '✓' : '!' }}
         </div>
