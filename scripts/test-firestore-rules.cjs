@@ -283,7 +283,7 @@ async function main() {
         friends: ['bob', 'carol'],
         lastAcceptedFriendshipId: 'alice__bob'
       })));
-    await test('Un invito può essere accettato creando direttamente un'amicizia', async () => {
+    await test("Un invito può essere accettato creando direttamente un'amicizia", async () => {
       const batch = writeBatch(bob);
       batch.update(doc(bob, 'friendInvites/test-invite-token-1234567890abcdef'), {
         status: 'accepted',
