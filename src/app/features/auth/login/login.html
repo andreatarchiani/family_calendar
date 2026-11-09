@@ -48,7 +48,7 @@
       <p class="message error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
       <p class="message success" *ngIf="successMessage" role="status">{{ successMessage }}</p>
 
-      <button class="primary-button" type="submit" [disabled]="isLoading">
+      <button class="primary-button reset-submit-button" type="submit" [disabled]="isLoading">
         {{ isLoading ? 'Attendi...' : (mode === 'register' ? 'Crea account' : 'Accedi') }}
       </button>
     </form>
@@ -68,9 +68,9 @@
     </ng-container>
 
     <ng-template #passwordResetView>
-      <section class="password-reset-view">
-        <span class="reset-icon" aria-hidden="true">✉</span>
-        <h2>Reimposta la password</h2>
+      <section class="password-reset-view" aria-labelledby="password-reset-title">
+        <span class="reset-icon" aria-hidden="true"><span class="reset-icon-symbol">✉</span></span>
+        <h2 id="password-reset-title">Reimposta la password</h2>
         <p>Inserisci l’indirizzo email associato al tuo account. Ti invieremo un link per scegliere una nuova password.</p>
         <form class="auth-form" (ngSubmit)="resetPassword()">
           <label>
