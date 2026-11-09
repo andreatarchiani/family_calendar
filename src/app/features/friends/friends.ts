@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -21,6 +22,7 @@ import { FriendColorService } from '../../core/services/friend-color';
   styleUrl: './friends.scss'
 })
 export class Friends implements OnInit {
+  private route = inject(ActivatedRoute);
   private currentUserService = inject(CurrentUser);
   private userService = inject(UserService);
   private friendshipService = inject(FriendshipService);
@@ -35,19 +37,62 @@ export class Friends implements OnInit {
   loading = false;
   friendColors: Record<string, string> = {};
   friendNames: Record<string, string> = {};
+  private pendingInviteCode = '';
 
   ngOnInit() {
+    this.route.queryParamMap.subscribe(params => {
+      const code = params.get('code') ?? '';
+      if (/^\d{6}$/.test(code)) {
+        this.pendingInviteCode = code;
+        this.searchTerm = code;
+      }
+    });
+
     this.currentUserService.user$
       .pipe(filter((user): user is User => user !== null), take(1))
       .subscribe(user => {
         this.currentUser = user;
         this.loadFriendColors();
         void this.loadData();
+        if (this.pendingInviteCode) {
+          this.searchTerm = this.pendingInviteCode;
+          void this.searchUsers();
+        }
       });
   }
 
   get friendCode(): string {
     return this.currentUser?.friendCode ?? '';
+  }
+
+  async inviteFriend() {
+    if (!this.friendCode) return;
+
+    const inviteUrl = new URL('/friends', window.location.origin);
+    inviteUrl.searchParams.set('code', this.friendCode);
+    const inviteText = `Ti invito su Family Calendar! Aggiungimi ai tuoi amici per condividere gli eventi. Apri il link e invia la richiesta: ${inviteUrl.toString()}`;
+
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: 'Invito a Family Calendar',
+          text: inviteText,
+          url: inviteUrl.toString()
+        });
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        console.error('Errore condivisione invito', error);
+        this.snackBar.open('Non è stato possibile aprire la condivisione', 'OK', { duration: 2500 });
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(inviteText);
+      this.snackBar.open('Invito copiato: puoi incollarlo dove vuoi', 'OK', { duration: 3000 });
+    } catch {
+      this.snackBar.open('Condivisione non supportata da questo browser', 'OK', { duration: 2500 });
+    }
   }
 
   async copyFriendCode() {
