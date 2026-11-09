@@ -9,7 +9,17 @@
 
     <section class="friend-code-card">
         <div class="card-topline">
-            <span class="card-icon"><mat-icon>person_add</mat-icon></span>
+            <button
+                mat-icon-button
+                type="button"
+                class="card-icon qr-code-trigger"
+                (click)="openQrCode()"
+                [disabled]="!friendCode"
+                aria-label="Mostra il QR code per invitare un amico"
+                title="Mostra QR code"
+            >
+                <mat-icon>qr_code_2</mat-icon>
+            </button>
             <span class="card-kicker">INVITA NELLA TUA FAMILY CALENDAR</span>
         </div>
         <h2>Condividi il calendario con chi vuoi</h2>
@@ -22,6 +32,33 @@
             <span class="invite-code-hint">Codice personale: <strong>{{ friendCode || '------' }}</strong></span>
         </div>
     </section>
+
+    @if (showQrCode) {
+        <div class="qr-modal-backdrop" (click)="closeQrCode()" (keydown.escape)="closeQrCode()">
+            <section
+                class="qr-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="qr-modal-title"
+                (click)="$event.stopPropagation()"
+            >
+                <button mat-icon-button type="button" class="qr-close-button" (click)="closeQrCode()" aria-label="Chiudi QR code">
+                    <mat-icon>close</mat-icon>
+                </button>
+                <div class="qr-modal-heading">
+                    <span class="qr-modal-icon"><mat-icon>qr_code_2</mat-icon></span>
+                    <h2 id="qr-modal-title">Invita con QR code</h2>
+                    <p>Fai inquadrare questo codice per inviare una richiesta di amicizia su Family Calendar.</p>
+                </div>
+                <div class="qr-code-frame">
+                    <img [src]="qrCodeUrl" alt="QR code personale per invitare su Family Calendar" />
+                    <span class="qr-center-logo" aria-hidden="true"><mat-icon>calendar_month</mat-icon></span>
+                </div>
+                <span class="qr-personal-code">Codice personale: <strong>{{ friendCode }}</strong></span>
+                <button mat-stroked-button type="button" class="qr-close-action" (click)="closeQrCode()">Chiudi</button>
+            </section>
+        </div>
+    }
 
     <section class="friends-section add-section">
         <div class="section-heading">
