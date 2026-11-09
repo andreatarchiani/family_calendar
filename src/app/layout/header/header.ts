@@ -2,7 +2,6 @@ import { Component, inject, Input } from '@angular/core';
 
 import { Auth } from '../../core/services/auth';
 import { Router } from '@angular/router';
-import { APP_CONFIG } from '../../core/config/app-config';
 import { CurrentUser } from '../../core/services/current-user';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -30,7 +29,6 @@ export class Header {
   private router = inject(Router);
   private currentUser = inject(CurrentUser);
 
-  appVersion = APP_CONFIG.version;
   showLogoutConfirmation = false;
   isLoggingOut = false;
   showNameEditor = false;
@@ -56,7 +54,7 @@ export class Header {
   }
 
   async saveName() {
-    const name = this.editedName.trim().replace(/\s+/g, ' ');
+    const name = this.editedName.trim().replace(/\\s+/g, ' ');
     if (name.length < 2 || name.length > 40) {
       this.nameError = 'Inserisci un nome da 2 a 40 caratteri.';
       return;
