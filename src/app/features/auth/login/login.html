@@ -1,55 +1,66 @@
-<h1>
-    Family Calendar
-</h1>
+<main class="auth-page">
+  <section class="auth-card" aria-labelledby="auth-title">
+    <div class="brand-mark" aria-hidden="true">
+      <span class="brand-mark-inner">F</span>
+    </div>
 
-
-<div class="login-box">
-
-
-    <input type="email" placeholder="Email" [(ngModel)]="email">
-
-
-    <input type="password" placeholder="Password" [(ngModel)]="password">
-
-
-
-    <button type="button" (click)="login()">
-
-        Login
-
-    </button>
-
-
-
-
-    <button class="google-button" type="button" (click)="loginGoogle()">
-
-
-        <img src="assets/google-logo.jpg">
-
-
-        Continua con Google
-
-
-    </button>
-
-
-
-
-
-    <p *ngIf="errorMessage">
-
-        {{ errorMessage }}
-
+    <p class="eyebrow">IL TUO SPAZIO CONDIVISO</p>
+    <h1 id="auth-title">Family Calendar</h1>
+    <p class="intro">
+      {{ mode === 'register' ? 'Crea il tuo account e organizza la quotidianità insieme alla tua famiglia.' : 'Accedi per ritrovare tutti gli impegni della tua famiglia.' }}
     </p>
 
+    <div class="mode-switch" role="tablist" aria-label="Accesso o registrazione">
+      <button type="button" role="tab" [attr.aria-selected]="mode === 'login'"
+        [class.active]="mode === 'login'" (click)="setMode('login')">Accedi</button>
+      <button type="button" role="tab" [attr.aria-selected]="mode === 'register'"
+        [class.active]="mode === 'register'" (click)="setMode('register')">Registrati</button>
+    </div>
 
-</div>
+    <form class="auth-form" (ngSubmit)="mode === 'register' ? register() : login()">
+      <label *ngIf="mode === 'register'">
+        <span>Nome</span>
+        <input type="text" name="name" [(ngModel)]="name" placeholder="Come ti chiami?"
+          autocomplete="name" maxlength="40" required>
+      </label>
 
+      <label>
+        <span>Email</span>
+        <input type="email" name="email" [(ngModel)]="email" placeholder="nome@email.com"
+          autocomplete="email" required>
+      </label>
 
+      <label>
+        <span>Password</span>
+        <input type="password" name="password" [(ngModel)]="password" placeholder="Almeno 6 caratteri"
+          [attr.autocomplete]="mode === 'register' ? 'new-password' : 'current-password'" required>
+      </label>
 
-<div class="version">
+      <label *ngIf="mode === 'register'">
+        <span>Conferma password</span>
+        <input type="password" name="confirmPassword" [(ngModel)]="confirmPassword"
+          placeholder="Ripeti la password" autocomplete="new-password" required>
+      </label>
 
-    v{{ appVersion }}
+      <p class="message error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
+      <p class="message success" *ngIf="successMessage" role="status">{{ successMessage }}</p>
 
-</div>
+      <button class="primary-button" type="submit" [disabled]="isLoading">
+        {{ isLoading ? 'Attendi...' : (mode === 'register' ? 'Crea account' : 'Accedi') }}
+      </button>
+    </form>
+
+    <div class="separator"><span>oppure</span></div>
+
+    <button class="google-button" type="button" (click)="loginGoogle()" [disabled]="isLoading">
+      <img src="assets/google-logo.jpg" alt="">
+      Continua con Google
+    </button>
+
+    <p class="terms" *ngIf="mode === 'register'">
+      Creando un account potrai accedere a Family Calendar con la tua email e password.
+    </p>
+  </section>
+
+  <p class="version">v{{ appVersion }}</p>
+</main>
