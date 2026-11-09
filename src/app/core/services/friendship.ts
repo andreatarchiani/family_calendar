@@ -108,6 +108,73 @@ export class FriendshipService {
     });
   }
 
+  async removeFriend(userId: string, friendId: string): Promise<void> {
+    if (!userId || !friendId || userId === friendId) {
+      throw new Error('Amicizia non valida.');
+    }
+
+    const friendships = collection(this.firestore, 'friendships');
+    const [outgoing, incoming] = await Promise.all([
+      getDocs(query(
+        friendships,
+        where('requesterId', '==', userId),
+        where('addresseeId', '==', friendId),
+        where('status', '==', 'accepted')
+      )),
+      getDocs(query(
+        friendships,
+        where('requesterId', '==', friendId),
+        where('addresseeId', '==', userId),
+        where('status', '==', 'accepted')
+      ))
+    ]);
+
+    const friendshipRefs = [...outgoing.docs, ...incoming.docs].map(item => item.ref);
+    if (!friendshipRefs.length) {
+      throw new Error('Amicizia non trovata.');
+    }
+
+    const userRef = doc(this.firestore, 'users', userId);
+    const friendRef = doc(this.firestore, 'users', friendId);
+
+    await runTransaction(this.firestore, async transaction => {
+      const refs = [...friendshipRefs, userRef, friendRef];
+      const snapshots = await Promise.all(refs.map(ref => transaction.get(ref)));
+      const friendshipSnapshots = snapshots.slice(0, friendshipRefs.length);
+      const userSnapshot = snapshots[friendshipRefs.length];
+      const friendSnapshot = snapshots[friendshipRefs.length + 1];
+
+      const validFriendships = friendshipSnapshots.filter(snapshot =>
+        snapshot.exists()
+        && snapshot.data()['status'] === 'accepted'
+        && (
+          (snapshot.data()['requesterId'] === userId && snapshot.data()['addresseeId'] === friendId)
+          || (snapshot.data()['requesterId'] === friendId && snapshot.data()['addresseeId'] === userId)
+        )
+      );
+
+      if (!validFriendships.length) {
+        throw new Error('L’amicizia non è più disponibile.');
+      }
+
+      validFriendships.forEach(snapshot => transaction.delete(snapshot.ref));
+
+      if (userSnapshot.exists()) {
+        const friends = userSnapshot.data()['friends'];
+        if (Array.isArray(friends) && friends.includes(friendId)) {
+          transaction.update(userRef, { friends: friends.filter(id => id !== friendId) });
+        }
+      }
+
+      if (friendSnapshot.exists()) {
+        const friends = friendSnapshot.data()['friends'];
+        if (Array.isArray(friends) && friends.includes(userId)) {
+          transaction.update(friendRef, { friends: friends.filter(id => id !== userId) });
+        }
+      }
+    });
+  }
+
   async getIncomingRequests(userId: string): Promise<Friendship[]> {
     const q = query(
       collection(this.firestore, 'friendships'),
