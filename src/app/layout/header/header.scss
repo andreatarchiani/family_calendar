@@ -1,105 +1,127 @@
 .app-header {
-
     height: 64px;
-
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     padding: 0 16px;
-
     background: white;
-
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-
     position: sticky;
-
     top: 0;
-
     z-index: 1000;
-
 }
 
-
-
 .title {
-
     display: flex;
-
     align-items: center;
-
     gap: 8px;
-
     font-size: 20px;
-
     font-weight: 600;
-
 }
 
 .title mat-icon {
-
     color: #2196f3;
-
 }
 
 .version {
-
-    font-size: 12px;
-
-    color: #757575;
-
+    font-size: 13px;
+    color: #777;
     margin-left: 4px;
-
 }
-
-.app-header {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    padding: 0 16px;
-
-}
-
-
-.title {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-}
-
 
 .account-area {
-
     display: flex;
-
     align-items: center;
-
     gap: 12px;
-
 }
-
 
 .account-name {
-
     font-weight: 700;
-
 }
 
+.dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.48);
+}
 
-.version {
+.logout-dialog {
+    width: min(100%, 360px);
+    box-sizing: border-box;
+    padding: 24px;
+    border-radius: 18px;
+    background: #fff;
+    color: #202124;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.24);
+}
 
-    color: #777;
+.logout-dialog h2 {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 600;
+}
 
-    font-size: 13px;
+.logout-dialog p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.5;
+}
 
+.logout-highlight {
+    color: #d32f2f;
+    font-weight: 700;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 28px;
+}
+
+.dialog-actions button {
+    min-height: 42px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cancel-button {
+    color: #424242;
+    background: #f1f3f4;
+}
+
+.confirm-button {
+    color: #fff;
+    background: #d32f2f;
+}
+
+.dialog-actions button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+@media (max-width: 480px) {
+    .title {
+        gap: 6px;
+        font-size: 17px;
+    }
+
+    .version {
+        font-size: 11px;
+    }
+
+    .account-area {
+        gap: 4px;
+    }
 }
