@@ -283,7 +283,7 @@ async function main() {
         friends: ['bob', 'carol'],
         lastAcceptedFriendshipId: 'alice__bob'
       })));
-    await test('Un invito può essere accettato creando amicizia e aggiornando entrambi i profili', async () => {
+    await test('Un invito può essere accettato creando direttamente un'amicizia', async () => {
       const batch = writeBatch(bob);
       batch.update(doc(bob, 'friendInvites/test-invite-token-1234567890abcdef'), {
         status: 'accepted',
@@ -299,10 +299,7 @@ async function main() {
         inviteId: 'test-invite-token-1234567890abcdef'
       });
       await assertSucceeds(batch.commit());
-      await assertSucceeds(updateDoc(doc(bob, 'users/alice'), {
-        friends: ['bob'],
-        lastAcceptedFriendshipId: 'invite_test-invite-token-1234567890abcdef'
-      }));
+
     });
 
     await test('Un utente non può accettare un invito a nome di un altro', () =>
