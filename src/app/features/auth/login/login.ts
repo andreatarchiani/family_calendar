@@ -65,6 +65,8 @@ export class Login implements OnInit, OnDestroy {
 
     if (actionMode === 'verifyEmail' && actionCode) {
       this.emailVerificationActionLoading = true;
+      // Keep the action code in memory, then remove Firebase's technical query string from the address bar.
+      void this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
       void this.handleVerifyEmailAction(actionCode);
       return;
     }
@@ -72,6 +74,8 @@ export class Login implements OnInit, OnDestroy {
     if (actionMode === 'resetPassword' && actionCode) {
       this.passwordActionCode = actionCode;
       this.passwordActionLoading = true;
+      // The code remains in component state; the visible URL stays clean.
+      void this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
       void this.preparePasswordReset(actionCode);
       return;
     }
