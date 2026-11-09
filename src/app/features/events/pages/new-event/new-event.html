@@ -1,130 +1,134 @@
-<form class="event-form" [formGroup]="eventForm">
-    <div class="form-heading">
-        <div class="heading-icon" aria-hidden="true"><mat-icon>event_available</mat-icon></div>
+<div class="event-page-container">
+    <header class="event-page-header">
         <div>
-            <p class="eyebrow">{{ isEditMode ? 'IL TUO CALENDARIO' : 'PIANIFICA QUALCOSA' }}</p>
-            <h2>{{ isEditMode ? 'Modifica evento' : 'Crea un evento' }}</h2>
-            <p class="subtitle">Aggiungi i dettagli e condividilo con chi vuoi.</p>
+            <p class="eyebrow">FAMILY CALENDAR</p>
+            <h1>{{ isEditMode ? 'Modifica evento' : 'Crea un evento' }}</h1>
+            <p class="header-copy">Aggiungi i dettagli e condividilo con chi vuoi.</p>
         </div>
-    </div>
+        <div class="header-decoration" aria-hidden="true">
+            <mat-icon>event_available</mat-icon>
+        </div>
+    </header>
 
-    <section class="form-section">
-        <div class="section-heading">
-            <span class="section-number">01</span>
-            <div>
-                <h3>Informazioni</h3>
-                <p>Come si chiama questo appuntamento?</p>
+    <form class="event-form" [formGroup]="eventForm">
+        <section class="form-section">
+            <div class="section-heading">
+                <span class="section-number">01</span>
+                <div>
+                    <h3>Informazioni</h3>
+                    <p>Come si chiama questo appuntamento?</p>
+                </div>
             </div>
-        </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Titolo evento</mat-label>
-            <input matInput formControlName="title" placeholder="Es. Cena in famiglia">
-        </mat-form-field>
-    </section>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Titolo evento</mat-label>
+                <input matInput formControlName="title" placeholder="Es. Cena in famiglia">
+            </mat-form-field>
+        </section>
 
-    <section class="form-section">
-        <div class="section-heading">
-            <span class="section-number">02</span>
-            <div>
-                <h3>Data e ora</h3>
-                <p>Quando è in programma?</p>
+        <section class="form-section">
+            <div class="section-heading">
+                <span class="section-number">02</span>
+                <div>
+                    <h3>Data e ora</h3>
+                    <p>Quando è in programma?</p>
+                </div>
             </div>
-        </div>
 
-        <div class="field-grid">
-            <mat-form-field appearance="outline">
-                <mat-label>Data inizio</mat-label>
-                <input matInput type="date" formControlName="startDate" (change)="onStartDateChange()">
+            <div class="field-grid">
+                <mat-form-field appearance="outline">
+                    <mat-label>Data inizio</mat-label>
+                    <input matInput type="date" formControlName="startDate" (change)="onStartDateChange()">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Data fine</mat-label>
+                    <input matInput type="date" formControlName="endDate" [min]="eventForm.controls.startDate.value">
+                </mat-form-field>
+            </div>
+
+            @if(isDateRangeInvalid()) {
+                <p class="error-message">La data di fine non può essere precedente alla data di inizio.</p>
+            }
+
+            <mat-form-field appearance="outline" class="time-field">
+                <mat-label>Ora di inizio</mat-label>
+                <input matInput type="time" formControlName="startTime">
+            </mat-form-field>
+        </section>
+
+        <section class="form-section">
+            <div class="section-heading">
+                <span class="section-number">03</span>
+                <div>
+                    <h3>Dettagli</h3>
+                    <p>Le informazioni utili da ricordare.</p>
+                </div>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Luogo</mat-label>
+                <input matInput formControlName="location" placeholder="Dove si svolgerà?">
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
-                <mat-label>Data fine</mat-label>
-                <input matInput type="date" formControlName="endDate" [min]="eventForm.controls.startDate.value">
+            <mat-form-field appearance="outline" class="full-width notes-field">
+                <mat-label>Note</mat-label>
+                <textarea matInput rows="3" formControlName="notes" placeholder="Aggiungi qualche dettaglio..."></textarea>
             </mat-form-field>
-        </div>
+        </section>
 
-        @if(isDateRangeInvalid()) {
-            <p class="error-message">La data di fine non può essere precedente alla data di inizio.</p>
-        }
-
-        <mat-form-field appearance="outline" class="time-field">
-            <mat-label>Ora di inizio</mat-label>
-            <input matInput type="time" formControlName="startTime">
-        </mat-form-field>
-    </section>
-
-    <section class="form-section">
-        <div class="section-heading">
-            <span class="section-number">03</span>
-            <div>
-                <h3>Dettagli</h3>
-                <p>Le informazioni utili da ricordare.</p>
+        <section class="form-section sharing-section">
+            <div class="section-heading">
+                <span class="section-number">04</span>
+                <div>
+                    <h3>Condivisione</h3>
+                    <p>Decidi chi può vedere questo evento.</p>
+                </div>
             </div>
-        </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Luogo</mat-label>
-            <input matInput formControlName="location" placeholder="Dove si svolgerà?">
-        </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Visibilità evento</mat-label>
+                <mat-select formControlName="visibility">
+                    <mat-option value="none">Solo io</mat-option>
+                    <mat-option value="all">Tutti i miei amici</mat-option>
+                    <mat-option value="selected">Solo amici selezionati</mat-option>
+                </mat-select>
+            </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width notes-field">
-            <mat-label>Note</mat-label>
-            <textarea matInput rows="3" formControlName="notes" placeholder="Aggiungi qualche dettaglio..."></textarea>
-        </mat-form-field>
-    </section>
+            @if(eventForm.value.visibility === 'selected') {
+                <div class="friends-picker">
+                    <p class="friends-label">Scegli gli amici</p>
+                    @if(friends.length === 0) {
+                        <p class="empty-friends">Non hai ancora amici da selezionare.</p>
+                    } @else {
+                        <div class="friends-list">
+                            @for(friend of friends; track friend.uid) {
+                                <mat-checkbox
+                                    class="friend-option"
+                                    [checked]="isFriendSelected(friend.uid)"
+                                    (change)="toggleFriendVisibility(friend.uid)">
+                                    {{ friend.name }}
+                                </mat-checkbox>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </section>
 
-    <section class="form-section sharing-section">
-        <div class="section-heading">
-            <span class="section-number">04</span>
-            <div>
-                <h3>Condivisione</h3>
-                <p>Decidi chi può vedere questo evento.</p>
-            </div>
-        </div>
-
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Visibilità evento</mat-label>
-            <mat-select formControlName="visibility">
-                <mat-option value="none">Solo io</mat-option>
-                <mat-option value="all">Tutti i miei amici</mat-option>
-                <mat-option value="selected">Solo amici selezionati</mat-option>
-            </mat-select>
-        </mat-form-field>
-
-        @if(eventForm.value.visibility === 'selected') {
-            <div class="friends-picker">
-                <p class="friends-label">Scegli gli amici</p>
-                @if(friends.length === 0) {
-                    <p class="empty-friends">Non hai ancora amici da selezionare.</p>
-                } @else {
-                    <div class="friends-list">
-                        @for(friend of friends; track friend.uid) {
-                            <mat-checkbox
-                                class="friend-option"
-                                [checked]="isFriendSelected(friend.uid)"
-                                (change)="toggleFriendVisibility(friend.uid)">
-                                {{ friend.name }}
-                            </mat-checkbox>
-                        }
-                    </div>
-                }
+        @if(!isEditMode || canEdit) {
+            <div class="form-actions">
+                <button
+                    mat-raised-button
+                    color="primary"
+                    type="button"
+                    class="save-button"
+                    [disabled]="eventForm.invalid || isDateRangeInvalid()"
+                    (click)="saveEvent()">
+                    {{ isEditMode ? 'Salva modifiche' : 'Crea evento' }}
+                </button>
+                <p class="save-hint">Potrai modificare i dettagli anche in seguito.</p>
             </div>
         }
-    </section>
-
-    @if(!isEditMode || canEdit) {
-        <div class="form-actions">
-            <button
-                mat-raised-button
-                color="primary"
-                type="button"
-                class="save-button"
-                [disabled]="eventForm.invalid || isDateRangeInvalid()"
-                (click)="saveEvent()">
-                {{ isEditMode ? 'Salva modifiche' : 'Crea evento' }}
-            </button>
-            <p class="save-hint">Potrai modificare i dettagli anche in seguito.</p>
-        </div>
-    }
-</form>
+    </form>
+</div>
