@@ -6,6 +6,7 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signOut,
+  deleteUser,
   authState,
   signInWithPopup,
   sendEmailVerification,
@@ -48,6 +49,13 @@ export class Auth {
       url: 'https://family-calendar-1e385.web.app/login?verified=1',
       handleCodeInApp: false
     });
+  }
+
+  async cancelUnverifiedRegistration() {
+    const user = this.auth.currentUser;
+    if (user && !user.emailVerified) {
+      await deleteUser(user);
+    }
   }
 
   async refreshUser(user: User) {
