@@ -1,3 +1,3 @@
 export const APP_CONFIG = {
-    version: '6.44'
+    version: '6.45'
 };
