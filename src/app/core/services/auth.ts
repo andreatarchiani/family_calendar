@@ -55,7 +55,7 @@ export class Auth {
 
   async sendPasswordReset(email: string): Promise<void> {
     await sendPasswordResetEmail(this.auth, email, {
-      url: 'https://family-calendar-1e385.web.app/login',
+      url: 'https://family-calendar-1e385.web.app/login?passwordReset=1',
       handleCodeInApp: false
     });
   }
