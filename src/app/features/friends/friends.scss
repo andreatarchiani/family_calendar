@@ -81,7 +81,18 @@
 .card-kicker { color: rgba(255,255,255,.72); font-size: 10px; font-weight: 800; letter-spacing: 1.1px; }
 .friend-code-card h2 { margin: 15px 0 6px; font-size: 19px; font-weight: 750; }
 .friend-code-card > p { max-width: 600px; margin: 0 0 16px; color: rgba(255,255,255,.78); font-size: 12px; line-height: 1.55; }
-.my-code-row { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
+.invite-action-row { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
+.invite-button {
+    min-height: 44px;
+    padding: 0 22px;
+    border-radius: 12px !important;
+    color: #253f68 !important;
+    background: white !important;
+    font-weight: 750;
+}
+.invite-button mat-icon { margin-right: 7px; }
+.invite-code-hint { color: rgba(255,255,255,.7); font-size: 11px; }
+.invite-code-hint strong { color: white; letter-spacing: 2px; }
 .my-code {
     color: white;
     font-size: 31px;
@@ -255,7 +266,8 @@
     .friends-header-icon { flex-basis: 48px; width: 48px; height: 48px; border-radius: 15px; }
     .friends-header-icon mat-icon { width: 28px; height: 28px; font-size: 28px; }
     .friend-code-card, .friends-section { padding: 16px; border-radius: 17px; }
-    .my-code { font-size: 26px; letter-spacing: 4px; }
+    .invite-action-row { align-items: flex-start; flex-direction: column; gap: 9px; }
+    .invite-button { width: 100%; }
     .search-row { align-items: stretch; }
     .search-row input { width: 100%; }
     .search-result { flex-wrap: wrap; }
