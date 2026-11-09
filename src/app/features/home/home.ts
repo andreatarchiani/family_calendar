@@ -9,6 +9,7 @@ import { FriendColorService } from '../../core/services/friend-color';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { from, map, switchMap, tap, catchError, shareReplay, firstValueFrom } from 'rxjs';
 
@@ -41,6 +42,7 @@ interface FriendPreferences {
     MatCardModule,
     MatIconModule,
     MatButtonModule,
+    MatProgressSpinnerModule,
     EventCardComponent
   ],
   templateUrl: './home.html',
@@ -66,6 +68,8 @@ export class Home {
 
 
   showPastEvents = false;
+
+  isLoading = true;
 
 
   appVersion = APP_CONFIG.version;
@@ -124,6 +128,7 @@ export class Home {
 
   private eventsWithAuthor$ = this.currentUser.user$.pipe(
     switchMap(user => {
+      this.isLoading = true;
       if (!user) return from([[]]);
 
       return from(this.friendshipService.getFriends(user.uid)).pipe(
@@ -171,6 +176,12 @@ export class Home {
           return this.sortEvents(eventsWithUsers);
         })
       );
+    }),
+    tap(() => this.isLoading = false),
+    catchError(error => {
+      console.error('[FC HOME] ERRORE caricamento eventi', error);
+      this.isLoading = false;
+      return from([[]]);
     }),
     // Home usa lo stesso flusso in tre async pipe: condividi query e trasformazioni.
     shareReplay({ bufferSize: 1, refCount: true })
