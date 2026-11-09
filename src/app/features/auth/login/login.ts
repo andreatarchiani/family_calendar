@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -13,7 +13,7 @@ import { APP_CONFIG } from '../../../core/config/app-config';
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class Login {
+export class Login implements OnInit {
   private authService = inject(Auth);
   private userService = inject(UserService);
   private router = inject(Router);
@@ -29,6 +29,45 @@ export class Login {
   isLoading = false;
 
   appVersion = APP_CONFIG.version;
+
+  ngOnInit(): void {
+    const verified = this.route.snapshot.queryParamMap.get('verified');
+    const pending = this.route.snapshot.queryParamMap.get('verify') === 'pending';
+
+    if (pending) {
+      this.successMessage = 'Ti abbiamo inviato un’email. Verifica il tuo indirizzo prima di accedere.';
+    }
+
+    if (verified === '1') {
+      void this.handleEmailVerificationReturn();
+    }
+  }
+
+  private async handleEmailVerificationReturn(): Promise<void> {
+    this.isLoading = true;
+    try {
+      const user = this.authService.currentUser;
+      if (user) {
+        await this.authService.refreshUser(user);
+        if (user.emailVerified) {
+          await this.userService.createUserIfNotExists(
+            user.uid,
+            user.displayName || user.email?.split('@')[0] || 'Utente',
+            user.email || '',
+            user.photoURL || undefined
+          );
+          this.navigateAfterLogin();
+          return;
+        }
+      }
+      this.successMessage = 'Email verificata correttamente. Ora puoi accedere con la tua email e password.';
+    } catch (error) {
+      console.error('Errore durante il completamento della verifica email', error);
+      this.errorMessage = 'Email verificata. Accedi per continuare.';
+    } finally {
+      this.isLoading = false;
+    }
+  }
 
   private navigateAfterLogin(): void {
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
@@ -58,6 +97,11 @@ export class Login {
     this.isLoading = true;
     try {
       const credential = await this.authService.login(this.email.trim(), this.password);
+      if (!credential.user.emailVerified) {
+        await this.authService.sendVerificationEmail(credential.user);
+        this.successMessage = 'La tua email non è ancora verificata. Ti abbiamo inviato un nuovo link: controlla la posta.';
+        return;
+      }
       await this.userService.createUserIfNotExists(
         credential.user.uid,
         credential.user.displayName || this.email.trim().split('@')[0] || 'Utente',
@@ -89,7 +133,7 @@ export class Login {
       return;
     }
     if (this.password.length < 6) {
-      this.errorMessage = 'La password deve contenere almeno 6 caratteri.';
+      this.errorMessage = 'La password è troppo semplice. Usa almeno 6 caratteri.';
       return;
     }
     if (this.password !== this.confirmPassword) {
@@ -99,14 +143,10 @@ export class Login {
 
     this.isLoading = true;
     try {
-      const firebaseUser = await this.authService.registerWithEmail(normalizedEmail, this.password, normalizedName);
-      await this.userService.createUserIfNotExists(
-        firebaseUser.uid,
-        normalizedName,
-        firebaseUser.email || normalizedEmail,
-        firebaseUser.photoURL || undefined
-      );
-      this.navigateAfterLogin();
+      await this.authService.registerWithEmail(normalizedEmail, this.password, normalizedName);
+      this.successMessage = 'Account creato! Ti abbiamo inviato un’email: premi il pulsante “Verifica la tua email” per attivare l’account.';
+      this.password = '';
+      this.confirmPassword = '';
     } catch (error: any) {
       console.error('Errore registrazione', error);
       this.errorMessage = this.getAuthErrorMessage(error, 'register');
@@ -120,13 +160,7 @@ export class Login {
     this.isLoading = true;
     try {
       const firebaseUser = await this.authService.loginWithGoogle();
-      await this.userService.createUserIfNotExists(
-        firebaseUser.uid,
-        firebaseUser.displayName || 'Utente',
-        firebaseUser.email || '',
-        firebaseUser.photoURL || undefined
-      );
-      this.navigateAfterLogin();
+      await this.finishSocialLogin(firebaseUser);
     } catch (error: any) {
       console.error('Errore login Google', error);
       this.errorMessage = this.getAuthErrorMessage(error, 'google');
@@ -135,7 +169,36 @@ export class Login {
     }
   }
 
-  private getAuthErrorMessage(error: any, action: 'login' | 'register' | 'google'): string {
+  async loginApple(): Promise<void> {
+    this.errorMessage = '';
+    this.isLoading = true;
+    try {
+      const firebaseUser = await this.authService.loginWithApple();
+      await this.finishSocialLogin(firebaseUser);
+    } catch (error: any) {
+      console.error('Errore login Apple', error);
+      this.errorMessage = this.getAuthErrorMessage(error, 'apple');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  private async finishSocialLogin(firebaseUser: any): Promise<void> {
+    if (!firebaseUser.emailVerified) {
+      this.errorMessage = 'Non è stato possibile verificare l’indirizzo email del tuo account.';
+      await this.authService.logout();
+      return;
+    }
+    await this.userService.createUserIfNotExists(
+      firebaseUser.uid,
+      firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Utente',
+      firebaseUser.email || '',
+      firebaseUser.photoURL || undefined
+    );
+    this.navigateAfterLogin();
+  }
+
+  private getAuthErrorMessage(error: any, action: 'login' | 'register' | 'google' | 'apple'): string {
     switch (error?.code) {
       case 'auth/invalid-email':
         return 'L’indirizzo email non è valido.';
@@ -152,15 +215,21 @@ export class Login {
       case 'auth/network-request-failed':
         return 'Problema di connessione. Controlla Internet e riprova.';
       case 'auth/operation-not-allowed':
-        return 'La registrazione con email e password non è ancora attiva. Contatta l’amministratore.';
+        return 'Questo metodo di accesso non è ancora attivo nelle impostazioni Firebase.';
       case 'auth/popup-closed-by-user':
-        return 'Accesso Google annullato.';
+        return 'Accesso annullato.';
+      case 'auth/unauthorized-domain':
+        return 'Questo dominio non è autorizzato per l’accesso Firebase.';
+      case 'auth/account-exists-with-different-credential':
+        return 'Esiste già un account con questa email. Accedi con il metodo già utilizzato.';
       default:
         return action === 'register'
           ? 'Non è stato possibile creare l’account. Riprova.'
-          : action === 'google'
-            ? 'Errore durante l’accesso con Google. Riprova.'
-            : 'Non è stato possibile accedere. Riprova.';
+          : action === 'apple'
+            ? 'Errore durante l’accesso con Apple. Verifica anche la configurazione del provider in Firebase.'
+            : action === 'google'
+              ? 'Errore durante l’accesso con Google. Riprova.'
+              : 'Non è stato possibile accedere. Riprova.';
     }
   }
 }
