@@ -20,6 +20,7 @@ export class Login implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
 
   mode: 'login' | 'register' = 'login';
+  showPasswordReset = false;
   modeTransition = false;
   private modeTransitionTimer: ReturnType<typeof setTimeout> | null = null;
   name = '';
@@ -162,11 +163,55 @@ export class Login implements OnInit, OnDestroy {
     void this.router.navigateByUrl(destination);
   }
 
+  openPasswordReset(): void {
+    this.showPasswordReset = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.password = '';
+    this.confirmPassword = '';
+  }
+
+  backToLogin(): void {
+    this.showPasswordReset = false;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  async resetPassword(): Promise<void> {
+    this.errorMessage = '';
+    this.successMessage = '';
+    const normalizedEmail = this.email.trim();
+    if (!normalizedEmail) {
+      this.errorMessage = 'Inserisci prima il tuo indirizzo email.';
+      return;
+    }
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(normalizedEmail)) {
+      this.errorMessage = 'Inserisci un indirizzo email valido.';
+      return;
+    }
+
+    this.isLoading = true;
+    try {
+      await this.authService.sendPasswordReset(normalizedEmail);
+      this.successMessage = 'Se l’indirizzo è associato a un account, riceverai a breve un’email con il link per reimpostare la password. Controlla anche la cartella spam.';
+    } catch (error: any) {
+      console.error('Errore invio reset password', error);
+      this.errorMessage = error?.code === 'auth/too-many-requests'
+        ? 'Hai effettuato troppe richieste. Attendi qualche minuto e riprova.'
+        : error?.code === 'auth/network-request-failed'
+          ? 'Problema di connessione. Controlla Internet e riprova.'
+          : 'Non è stato possibile inviare l’email. Controlla l’indirizzo e riprova.';
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
   setMode(mode: 'login' | 'register'): void {
     if (this.mode === mode) return;
     this.modeTransition = false;
     if (this.modeTransitionTimer !== null) clearTimeout(this.modeTransitionTimer);
     this.mode = mode;
+    this.showPasswordReset = false;
     requestAnimationFrame(() => {
       this.modeTransition = true;
       this.modeTransitionTimer = setTimeout(() => {
