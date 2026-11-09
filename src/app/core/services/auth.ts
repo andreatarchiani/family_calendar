@@ -9,6 +9,7 @@ import {
   authState,
   signInWithPopup,
   sendEmailVerification,
+  sendPasswordResetEmail,
   reload,
   User
 } from '@angular/fire/auth';
@@ -48,6 +49,13 @@ export class Auth {
   async sendVerificationEmail(user: User) {
     await sendEmailVerification(user, {
       url: 'https://family-calendar-1e385.web.app/login?verified=1',
+      handleCodeInApp: false
+    });
+  }
+
+  async sendPasswordReset(email: string): Promise<void> {
+    await sendPasswordResetEmail(this.auth, email, {
+      url: 'https://family-calendar-1e385.web.app/login',
       handleCodeInApp: false
     });
   }
