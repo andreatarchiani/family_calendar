@@ -12,6 +12,8 @@ import {
   deleteDoc,
   query,
   where,
+  or,
+  and,
   getDocs
 } from '@angular/fire/firestore';
 
@@ -37,7 +39,7 @@ export class EventService {
   /**
    * Prima converte gli eventi legacy dell'utente corrente (senza visibility)
    * in eventi visibility='all'. Poi ascolta query separate: propri eventi,
-   * eventi degli amici condivisi con tutti e eventi selezionati per l'utente.
+   * eventi degli amici condivisi con tutti o selezionati per l'utente.
    * In questo modo le query includono già i vincoli richiesti dalle regole.
    */
   getVisibleEvents(currentUserId: string, friendIds: string[]): Observable<Event[]> {
@@ -63,29 +65,25 @@ export class EventService {
             .slice(0, 30);
 
           for (const friendId of uniqueFriendIds) {
-            const allQuery = query(
+            // Una query OR sostituisce i due listener separati (all/selected).
+            // Manteniamo authorId uguale al singolo amico per consentire alle
+            // Security Rules di verificare in modo preciso l'amicizia.
+            const friendEventsQuery = query(
               this.eventsCollection,
               where('authorId', '==', friendId),
-              where('visibility', '==', 'all')
-            );
-
-            const selectedQuery = query(
-              this.eventsCollection,
-              where('authorId', '==', friendId),
-              where('visibility', '==', 'selected'),
-              where(`visibleToMap.${currentUserId}`, '==', true)
+              or(
+                where('visibility', '==', 'all'),
+                and(
+                  where('visibility', '==', 'selected'),
+                  where(`visibleToMap.${currentUserId}`, '==', true)
+                )
+              )
             );
 
             streams.push(
-              (collectionData(allQuery, { idField: 'id' }) as Observable<Event[]>).pipe(
+              (collectionData(friendEventsQuery, { idField: 'id' }) as Observable<Event[]>).pipe(
                 catchError(error => {
-                  console.error('[FC DEBUG] ERRORE query eventi amici visibility=all', friendId, error);
-                  throw error;
-                })
-              ),
-              (collectionData(selectedQuery, { idField: 'id' }) as Observable<Event[]>).pipe(
-                catchError(error => {
-                  console.error('[FC DEBUG] ERRORE query eventi amici visibility=selected', friendId, error);
+                  console.error('[FC DEBUG] ERRORE query eventi condivisi', friendId, error);
                   throw error;
                 })
               )
@@ -105,6 +103,18 @@ export class EventService {
   }
 
   private async migrateLegacyEvents(userId: string): Promise<void> {
+    // La migrazione viene verificata una volta per utente e browser. Gli eventi
+    // creati dalle versioni attuali sono già normalizzati: non serve rileggere
+    // tutta la collezione ad ogni apertura della Home.
+    const migrationKey = `fc_legacy_migration_v2_${userId}`;
+    try {
+      if (typeof localStorage !== 'undefined' && localStorage.getItem(migrationKey) === 'done') {
+        return;
+      }
+    } catch {
+      // Se lo storage non è disponibile, eseguiamo comunque il controllo sicuro.
+    }
+
     console.log('[FC DEBUG] Migrazione legacy: lettura eventi personali', userId);
     let ownEvents;
     try {
@@ -153,6 +163,14 @@ export class EventService {
       throw error;
     }
     console.log('[FC DEBUG] Migrazione legacy completata');
+
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(migrationKey, 'done');
+      }
+    } catch {
+      // Lo storage è solo un'ottimizzazione: la migrazione è già completata.
+    }
   }
 
   getEventById(id: string): Observable<Event | undefined> {
