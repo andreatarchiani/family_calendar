@@ -27,15 +27,19 @@ export class Login implements OnInit {
   errorMessage = '';
   successMessage = '';
   isLoading = false;
+  awaitingVerification = false;
+  pendingEmail = '';
 
   appVersion = APP_CONFIG.version;
 
   ngOnInit(): void {
     const verified = this.route.snapshot.queryParamMap.get('verified');
     const pending = this.route.snapshot.queryParamMap.get('verify') === 'pending';
+    const savedPendingEmail = sessionStorage.getItem('familyCalendar.pendingVerificationEmail');
 
-    if (pending) {
-      this.successMessage = 'Ti abbiamo inviato un’email. Verifica il tuo indirizzo prima di accedere.';
+    if (pending || savedPendingEmail) {
+      this.awaitingVerification = true;
+      this.pendingEmail = savedPendingEmail || '';
     }
 
     if (verified === '1') {
@@ -56,11 +60,15 @@ export class Login implements OnInit {
             user.email || '',
             user.photoURL || undefined
           );
+          sessionStorage.removeItem('familyCalendar.pendingVerificationEmail');
+          this.awaitingVerification = false;
           this.navigateAfterLogin();
           return;
         }
       }
-      this.successMessage = 'Email verificata correttamente. Ora puoi accedere con la tua email e password.';
+      this.awaitingVerification = false;
+      sessionStorage.removeItem('familyCalendar.pendingVerificationEmail');
+      this.successMessage = 'Email verificata. Per accedere automaticamente, apri il link nello stesso browser in cui hai creato l’account.';
     } catch (error) {
       console.error('Errore durante il completamento della verifica email', error);
       this.errorMessage = 'Email verificata. Accedi per continuare.';
@@ -144,7 +152,9 @@ export class Login implements OnInit {
     this.isLoading = true;
     try {
       await this.authService.registerWithEmail(normalizedEmail, this.password, normalizedName);
-      this.successMessage = 'Account creato! Ti abbiamo inviato un’email: premi il pulsante “Verifica la tua email” per attivare l’account.';
+      this.pendingEmail = normalizedEmail;
+      this.awaitingVerification = true;
+      sessionStorage.setItem('familyCalendar.pendingVerificationEmail', normalizedEmail);
       this.password = '';
       this.confirmPassword = '';
     } catch (error: any) {
