@@ -377,30 +377,6 @@ button:disabled {
   padding: 8px 0 2px;
   text-align: center;
 }
-.reset-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 58px;
-  height: 58px;
-  flex: 0 0 58px;
-  box-sizing: border-box;
-  margin: 0 auto 17px;
-  border: 1px solid #e4e9e4;
-  border-radius: 18px;
-  background: #f2f5f1;
-  color: #647568;
-  box-shadow: 0 5px 14px rgba(52, 72, 56, .06);
-}
-.reset-icon-symbol {
-  position: relative;
-  display: block;
-  width: 25px;
-  height: 18px;
-  box-sizing: border-box;
-  border: 2px solid currentColor;
-  border-radius: 4px;
-}
 .reset-icon-symbol::after {
   content: '';
   position: absolute;
@@ -444,30 +420,6 @@ button:disabled {
 /* Password reset: visual language aligned with the Family Calendar auth card */
 .password-reset-view {
   animation: auth-mode-enter .32s cubic-bezier(.2, .75, .25, 1) both;
-}
-.reset-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 58px;
-  height: 58px;
-  flex: 0 0 58px;
-  box-sizing: border-box;
-  margin: 0 auto 17px;
-  border: 1px solid #e4e9e4;
-  border-radius: 18px;
-  background: #f2f5f1;
-  color: #647568;
-  box-shadow: 0 5px 14px rgba(52, 72, 56, .06);
-}
-.reset-icon-symbol {
-  position: relative;
-  display: block;
-  width: 25px;
-  height: 18px;
-  box-sizing: border-box;
-  border: 2px solid currentColor;
-  border-radius: 4px;
 }
 .reset-icon-symbol::after {
   content: '';
