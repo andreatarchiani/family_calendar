@@ -10,7 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 
-import { from, map, switchMap, tap, catchError } from 'rxjs';
+import { from, map, switchMap, tap, catchError, shareReplay } from 'rxjs';
 
 import { Router } from '@angular/router';
 
@@ -117,242 +117,59 @@ export class Home {
 
 
 
-  private eventsWithAuthor$ =
-
-
-    this.currentUser.user$
-
-
-      .pipe(
-
-
-        switchMap(user => {
-
-
-
-          if (!user) {
-
-            return from([[]]);
-
-          }
-
-
-
-
-          return from(
-
-
-            this.friendshipService
-              .getFriends(user.uid)
-
-
-          )
-
-
-
-            .pipe(
-
-
-
-              switchMap(friendIds =>
-
-
-
-                this.eventService
-                  .getVisibleEvents(
-                    user.uid,
-                    friendIds
-                  )
-
-
-              ),
-
-
-
-
-
-
-              switchMap(async events => {
-                console.log('[FC HOME] Avvio caricamento preferenze e profili', events.length);
-
-                // recupero preferenze personali
-                const preferences =
-
-
-                  await new Promise<any>(resolve => {
-
-
-                    this.friendColorService
-                      .getFriendColors(user.uid)
-                      .subscribe({
-                        next: data => {
-                          console.log('[FC HOME] Preferenze caricate');
-                          resolve(data ?? {});
-                        },
-                        error: error => {
-                          console.error('[FC HOME] ERRORE preferenze colori', error);
-                          resolve({});
-                        }
-                      });
-
-
-                  });
-
-
-
-
-
-                const friendColors =
-
-                  preferences.friendColors
-                  ??
-                  {};
-
-
-
-
-
-                const friendNames =
-
-                  preferences.friendNames
-                  ??
-                  {};
-
-
-
-
-
-
-
-
-                const eventsWithUsers =
-
-
-                  await Promise.all(
-
-
-
-                    events.map(async event => {
-
-
-
-                      let author;
-                      try {
-                        author = await this.userService.getUserById(event.authorId);
-                      } catch (error) {
-                        console.error('[FC HOME] ERRORE caricamento profilo autore', event.authorId, error);
-                        throw error;
-                      }
-
-
-
-
-
-                      return {
-
-
-
-                        ...event,
-
-
-
-
-
-                        author: author
-
-                          ?
-
-                          {
-
-                            ...author,
-
-
-                            // nome personalizzato
-                            name:
-
-
-                              friendNames[event.authorId]
-
-                              ||
-
-                              author.name
-
-
-                          }
-
-
-                          :
-
-                          null,
-
-
-
-
-
-
-
-                        color:
-
-
-
-                          friendColors[event.authorId]
-
-
-                          ||
-
-
-                          author?.color
-
-
-                          ||
-
-
-                          '#ccc'
-
-
-
-                      };
-
-
-
-                    })
-
-
-                  );
-
-
-
-
-
-
-                return this.sortEvents(
-                  eventsWithUsers
-                );
-
-
-
-
+  private eventsWithAuthor$ = this.currentUser.user$.pipe(
+    switchMap(user => {
+      if (!user) return from([[]]);
+
+      return from(this.friendshipService.getFriends(user.uid)).pipe(
+        switchMap(friendIds => this.eventService.getVisibleEvents(user.uid, friendIds)),
+        switchMap(async events => {
+          console.log('[FC HOME] Avvio caricamento preferenze e profili', events.length);
+
+          // Legge le preferenze una sola volta e chiude subito la sottoscrizione.
+          const preferences = await new Promise<any>(resolve => {
+            this.friendColorService.getFriendColors(user.uid).pipe(
+              catchError(error => {
+                console.error('[FC HOME] ERRORE preferenze colori', error);
+                return from([{}]);
               })
+            ).subscribe(data => resolve(data ?? {}));
+          });
 
+          const friendColors = preferences.friendColors ?? {};
+          const friendNames = preferences.friendNames ?? {};
 
-            );
+          // Un solo recupero profilo per autore, anche se ha più eventi.
+          const authorIds = [...new Set(events.map(event => event.authorId).filter(Boolean))];
+          const authorEntries = await Promise.all(authorIds.map(async authorId => {
+            try {
+              return [authorId, await this.userService.getUserById(authorId)] as const;
+            } catch (error) {
+              console.error('[FC HOME] ERRORE caricamento profilo autore', authorId, error);
+              throw error;
+            }
+          }));
+          const authors = new Map(authorEntries);
 
+          const eventsWithUsers = events.map(event => {
+            const author = authors.get(event.authorId) ?? null;
+            return {
+              ...event,
+              author: author ? {
+                ...author,
+                name: friendNames[event.authorId] || author.name
+              } : null,
+              color: friendColors[event.authorId] || author?.color || '#ccc'
+            };
+          });
 
-
+          return this.sortEvents(eventsWithUsers);
         })
-
-
       );
-
-
-
-
-
-
-
-
-
-
+    }),
+    // Home usa lo stesso flusso in tre async pipe: condividi query e trasformazioni.
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 
 
   nextEvent$ =
