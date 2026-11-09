@@ -40,7 +40,6 @@
               </button>
             </div>
           </label>
-          <p class="message error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
           <button class="primary-button" type="submit" [disabled]="isLoading">
             {{ isLoading ? 'Salvataggio…' : 'Salva nuova password' }}
           </button>
