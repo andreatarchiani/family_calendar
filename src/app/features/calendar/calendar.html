@@ -1,418 +1,170 @@
 <div class="calendar-container">
+    <header class="calendar-intro">
+        <div>
+            <p class="eyebrow">ORGANIZZA I TUOI IMPEGNI</p>
+            <h1>Calendario</h1>
+            <p class="intro-copy">Tutti gli appuntamenti, in un unico posto.</p>
+        </div>
+        <div class="intro-icon"><mat-icon>calendar_month</mat-icon></div>
+    </header>
 
-
-    <!-- CAMBIO VISTA -->
-
-    <div class="view-buttons">
-
-        <button mat-button [class.active]="viewMode === 'calendar'" (click)="setView('calendar')">
-
+    <div class="view-switch" role="group" aria-label="Modalità di visualizzazione">
+        <button type="button" [class.active]="viewMode === 'calendar'" (click)="setView('calendar')">
+            <mat-icon>calendar_view_month</mat-icon>
             Calendario
-
         </button>
-
-
-        <button mat-button [class.active]="viewMode === 'agenda'" (click)="setView('agenda')">
-
+        <button type="button" [class.active]="viewMode === 'agenda'" (click)="setView('agenda')">
+            <mat-icon>view_agenda</mat-icon>
             Agenda
-
         </button>
-
     </div>
-
-
-
-    <!-- AGENDA -->
 
     @if(viewMode === 'agenda') {
-
-
-    <!-- FILTRO UTENTI -->
-
-    <div class="filters">
-
-        @for(user of users; track user.uid) {
-
-        <button class="user-filter" [class.active]="selectedUsers.includes(user.uid)" [style.background]="
-                        selectedUsers.includes(user.uid)
-                        ? user.color
-                        : '#f5f5f5'
-                    " (click)="toggleUser(user.uid)">
-
-
-            <span class="filter-dot" [style.background]="user.color">
-            </span>
-
-
-            {{ user.name }}
-
-
-        </button>
-
-        }
-
-    </div>
-
-
-
-
-    <div class="agenda">
-
-
-        @for(event of getAgendaEvents(); track event.id) {
-
-        <div class="agenda-event" (click)="openEvent(event)">
-
-
-
-            <span class="event-dot" [style.background-color]="getEventColor(event)">
-            </span>
-
-
-
-
-            <div class="agenda-content">
-
-
-                <strong>
-                    {{ event.title }}
-                </strong>
-
-
-
-                <span>
-                    📅 {{ getEventDateLabel(event) }}
-                </span>
-
-
-
-                <span>
-                    🕒 {{ event.startTime }}
-                </span>
-
-
-
-                @if(event.location) {
-
-                <span>
-                    📍 {{ event.location }}
-                </span>
-
-                }
-
-
+        <section class="agenda-view">
+            <div class="filters-panel">
+                <div class="panel-heading">
+                    <div>
+                        <h2>Filtra per persona</h2>
+                        <p>Mostra gli eventi delle persone selezionate.</p>
+                    </div>
+                    <mat-icon>filter_list</mat-icon>
+                </div>
+                <div class="filters">
+                    @for(user of users; track user.uid) {
+                        <button class="user-filter"
+                            [class.active]="selectedUsers.includes(user.uid)"
+                            [style.background]="selectedUsers.includes(user.uid) ? user.color : '#f3f5f8'"
+                            [style.color]="selectedUsers.includes(user.uid) ? '#ffffff' : 'inherit'"
+                            (click)="toggleUser(user.uid)">
+                            <span class="filter-dot" [style.background]="selectedUsers.includes(user.uid) ? '#ffffff' : user.color"></span>
+                            {{ user.name }}
+                        </button>
+                    }
+                </div>
             </div>
 
-
-        </div>
-
-
-        }
-
-
-
-        @if(getAgendaEvents().length === 0) {
-
-        <p>
-            Nessun evento futuro
-        </p>
-
-        }
-
-
-    </div>
-
-
+            <div class="agenda-list">
+                <div class="list-heading">
+                    <h2>Prossimi appuntamenti</h2>
+                    <span class="list-heading-icon"><mat-icon>event</mat-icon></span>
+                </div>
+                @for(event of getAgendaEvents(); track event.id) {
+                    <button type="button" class="agenda-event" (click)="openEvent(event)">
+                        <span class="event-accent" [style.background-color]="getEventColor(event)"></span>
+                        <span class="agenda-content">
+                            <strong>{{ event.title }}</strong>
+                            <span class="agenda-meta"><mat-icon>calendar_today</mat-icon>{{ getEventDateLabel(event) }}</span>
+                            @if(event.startTime) {
+                                <span class="agenda-meta"><mat-icon>schedule</mat-icon>{{ event.startTime }}</span>
+                            }
+                            @if(event.location) {
+                                <span class="agenda-meta"><mat-icon>place</mat-icon>{{ event.location }}</span>
+                            }
+                        </span>
+                        <mat-icon class="event-arrow">chevron_right</mat-icon>
+                    </button>
+                }
+                @if(getAgendaEvents().length === 0) {
+                    <div class="empty-agenda">
+                        <mat-icon>event_busy</mat-icon>
+                        <h3>Nessun evento futuro</h3>
+                        <p>Non ci sono appuntamenti da mostrare con questi filtri.</p>
+                    </div>
+                }
+            </div>
+        </section>
     }
-
-
-
-
-    <!-- CALENDARIO -->
 
     @if(viewMode === 'calendar') {
+        <section class="month-panel">
+            <div class="calendar-header">
+                <div>
+                    <p class="eyebrow">VISTA MENSILE</p>
+                    <h2>{{ monthName }}</h2>
+                </div>
+                <div class="month-navigation">
+                    <button mat-icon-button type="button" aria-label="Mese precedente" (click)="previousMonth()">
+                        <mat-icon>chevron_left</mat-icon>
+                    </button>
+                    <button mat-icon-button type="button" aria-label="Mese successivo" (click)="nextMonth()">
+                        <mat-icon>chevron_right</mat-icon>
+                    </button>
+                </div>
+            </div>
 
-
-
-    <div class="calendar-header">
-
-
-        <button mat-icon-button (click)="previousMonth()">
-
-            <mat-icon>
-                chevron_left
-            </mat-icon>
-
-        </button>
-
-
-
-
-        <h2>
-            {{ monthName }}
-        </h2>
-
-
-
-
-        <button mat-icon-button (click)="nextMonth()">
-
-            <mat-icon>
-                chevron_right
-            </mat-icon>
-
-        </button>
-
-
-    </div>
-
-
-
-
-
-
-    <div class="week-days">
-
-
-        @for(day of weekDays; track day) {
-
-
-        <div class="week-day">
-
-            {{ day }}
-
-        </div>
-
-
-        }
-
-
-    </div>
-
-
-
-
-
-
-
-    <div class="calendar-grid">
-
-
-
-        @for(day of days; track $index) {
-
-
-
-        @if(day) {
-
-
-
-        <div class="calendar-day" [class.today]="isToday(day)" (click)="selectDay(day)">
-
-
-
-            <span class="day-number" [class.has-events]="getEventsForDay(day).length > 0">
-
-                {{ day.getDate() }}
-
-            </span>
-
-
-            <div class="day-event-indicators" aria-label="Eventi del giorno">
-
-                @for(event of getEventsForDay(day).slice(0, 3); track event.id) {
-
-                <span class="day-event-indicator" [style.background-color]="getEventColor(event)"></span>
-
+            <div class="week-days">
+                @for(day of weekDays; track day) {
+                    <div class="week-day">{{ day }}</div>
                 }
-
             </div>
 
-
-            @if(isToday(day)) {
-
-            <small class="today-label">
-
-                Oggi
-
-            </small>
-
-            }
-
-
-
-        </div>
-
-
-
-        }
-        @else {
-
-
-        <div class="calendar-day empty"></div>
-
-
-        }
-
-
-
-        }
-
-
-
-    </div>
-
-
-
-
-
-
-
-    <!-- GIORNO SELEZIONATO -->
-
-
-    @if(selectedDay) {
-
-
-
-    <section #selectedDaySection class="selected-day-card">
-
-
-
-        <div class="selected-day-header">
-
-
-            <div>
-
-                <h3>
-                    {{ selectedDayTitle }}
-                </h3>
-
-
-                <span>
-                    Eventi programmati
-                </span>
-
-
-            </div>
-
-
-
-
-            <button mat-icon-button (click)="selectedDay = null">
-
-                <mat-icon>
-                    close
-                </mat-icon>
-
-            </button>
-
-
-        </div>
-
-
-
-
-
-
-
-        <div class="selected-events">
-
-
-
-            @if(getEventsForDay(selectedDay).length > 0) {
-
-
-
-            @for(event of getEventsForDay(selectedDay); track event.id) {
-
-            <div class="selected-event" (click)="openEvent(event)">
-
-                <span class="event-dot" [style.background-color]="getEventColor(event)">
-                </span>
-
-
-
-
-
-                <div class="selected-event-content">
-
-
-                    <strong>
-                        {{ event.title }}
-                    </strong>
-
-
-                    <span>
-                        📅 {{ getEventDateLabel(event) }}
-                    </span>
-
-                    @if(event.startTime) {
-                    <span>
-                        🕒 {{ event.startTime }}
-                    </span>
+            <div class="calendar-grid">
+                @for(day of days; track $index) {
+                    @if(day) {
+                        <button type="button" class="calendar-day"
+                            [class.today]="isToday(day)"
+                            [class.has-events]="getEventsForDay(day).length > 0"
+                            [class.selected]="selectedDay && selectedDay.toDateString() === day.toDateString()"
+                            (click)="selectDay(day)">
+                            <span class="day-number">{{ day.getDate() }}</span>
+                            <span class="day-event-indicators" aria-label="Eventi del giorno">
+                                @for(event of getEventsForDay(day).slice(0, 3); track event.id) {
+                                    <span class="day-event-indicator" [style.background-color]="getEventColor(event)"></span>
+                                }
+                            </span>
+                            @if(isToday(day)) {
+                                <small class="today-label">Oggi</small>
+                            }
+                        </button>
+                    } @else {
+                        <div class="calendar-day empty"></div>
                     }
+                }
+            </div>
+        </section>
 
-
+        @if(selectedDay) {
+            <section #selectedDaySection class="selected-day-card">
+                <div class="selected-day-header">
+                    <div>
+                        <p class="eyebrow">DETTAGLIO GIORNATA</p>
+                        <h3>{{ selectedDayTitle }}</h3>
+                        <span>Gli appuntamenti di questo giorno</span>
+                    </div>
+                    <button mat-icon-button type="button" aria-label="Chiudi giorno selezionato" (click)="selectedDay = null">
+                        <mat-icon>close</mat-icon>
+                    </button>
                 </div>
 
+                <div class="selected-events">
+                    @if(getEventsForDay(selectedDay).length > 0) {
+                        @for(event of getEventsForDay(selectedDay); track event.id) {
+                            <button type="button" class="selected-event" (click)="openEvent(event)">
+                                <span class="event-accent" [style.background-color]="getEventColor(event)"></span>
+                                <span class="selected-event-content">
+                                    <strong>{{ event.title }}</strong>
+                                    <span><mat-icon>calendar_today</mat-icon>{{ getEventDateLabel(event) }}</span>
+                                    @if(event.startTime) {
+                                        <span><mat-icon>schedule</mat-icon>{{ event.startTime }}</span>
+                                    }
+                                </span>
+                                <mat-icon class="event-arrow">chevron_right</mat-icon>
+                            </button>
+                        }
+                    } @else {
+                        <div class="empty-selected">
+                            <mat-icon>event_available</mat-icon>
+                            <p>Nessun evento programmato</p>
+                            <span>Una giornata libera da impegni.</span>
+                        </div>
+                    }
+                </div>
 
-
-            </div>
-
-
-
-            }
-
-
-
-            }
-            @else {
-
-
-            <p class="empty-selected">
-
-                Nessun evento programmato
-
-            </p>
-
-
-            }
-
-
-
-        </div>
-
-
-
-
-
-
-        <button mat-flat-button color="primary" class="create-day-event" (click)="createEventFromSelectedDay()">
-
-
-            <mat-icon>
-                add
-            </mat-icon>
-
-
-            Crea evento
-
-
-        </button>
-
-
-
-    </section>
-
-
-
+                <button mat-flat-button color="primary" class="create-day-event" (click)="createEventFromSelectedDay()">
+                    <mat-icon>add</mat-icon>
+                    Crea evento
+                </button>
+            </section>
+        }
     }
-
-
-
-    }
-
-
-
 </div>
