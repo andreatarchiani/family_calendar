@@ -190,6 +190,27 @@ export class Friends implements OnInit {
     this.friends = resolvedFriends.filter((user): user is User => !!user);
   }
 
+  async removeFriend(friend: User) {
+    if (!this.currentUser?.uid) return;
+
+    const displayName = this.friendNames[friend.uid] || friend.name || 'questo amico';
+    const confirmed = window.confirm(
+      `Vuoi davvero eliminare ${displayName} dai tuoi amici? Non vedrete più gli eventi condivisi tra i vostri profili.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await this.friendshipService.removeFriend(this.currentUser.uid, friend.uid);
+      this.friends = this.friends.filter(item => item.uid !== friend.uid);
+      delete this.friendColors[friend.uid];
+      delete this.friendNames[friend.uid];
+      this.snackBar.open('Amico eliminato', 'OK', { duration: 2000 });
+    } catch (error) {
+      console.error('Errore eliminazione amico', error);
+      this.snackBar.open('Impossibile eliminare l’amico. Riprova.', 'OK', { duration: 2500 });
+    }
+  }
+
   async sendRequest(targetUid: string) {
     if (!this.currentUser?.uid) return;
 
