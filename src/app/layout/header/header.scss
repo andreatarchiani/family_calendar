@@ -35,9 +35,67 @@
     gap: 12px;
 }
 
-.account-name {
-    font-weight: 700;
+.account-name-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 9px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+    transition: background .18s ease;
 }
+.account-name-button:hover { background: rgba(40, 104, 199, .07); }
+.account-name-button mat-icon { width: 16px; height: 16px; font-size: 16px; opacity: .58; }
+.account-name { font-weight: 700; }
+
+.name-dialog {
+    width: min(100%, 380px);
+    box-sizing: border-box;
+    padding: 28px 26px 22px;
+    border: 1px solid rgba(255, 255, 255, .75);
+    border-radius: 24px;
+    background: #fff;
+    color: #202124;
+    box-shadow: 0 24px 70px rgba(15, 30, 55, .25);
+    animation: logout-dialog-in .2s ease-out;
+}
+.name-dialog-icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 15px;
+    border-radius: 17px;
+    color: #2868c7;
+    background: #edf4ff;
+}
+.name-dialog-icon mat-icon { width: 27px; height: 27px; font-size: 27px; }
+.name-dialog h2 { margin: 0; text-align: center; font-size: 20px; font-weight: 750; }
+.name-dialog > p { margin: 8px 0 20px; color: #687386; text-align: center; font-size: 13px; line-height: 1.5; }
+.name-input-label { display: block; margin-bottom: 7px; color: #596579; font-size: 12px; font-weight: 700; }
+.name-input {
+    width: 100%;
+    height: 46px;
+    box-sizing: border-box;
+    padding: 0 13px;
+    border: 1px solid #dfe5ed;
+    border-radius: 12px;
+    outline: none;
+    color: #202633;
+    background: #f8f9fb;
+    font: inherit;
+    font-size: 14px;
+}
+.name-input:focus { border-color: #6b9cda; box-shadow: 0 0 0 3px rgba(40,104,199,.09); }
+.name-error { margin: 8px 0 0 !important; color: #c73535 !important; text-align: left !important; font-size: 12px !important; }
+.save-name-button {
+    color: #fff;
+    background: #2868c7;
+}
+.save-name-button:disabled { opacity: .55; cursor: default; }
 
 .dialog-backdrop {
     position: fixed;

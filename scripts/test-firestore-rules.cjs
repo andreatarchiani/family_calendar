@@ -67,7 +67,8 @@ async function main() {
         friends: []
       });
 
-      await setDoc(doc(db, 'friendCodes/123456'), { uid: 'alice' });
+      await setDoc(doc(db, 'friendCodes/123456'), { uid: 'alice', name: 'Alice' });
+      await setDoc(doc(db, 'friendCodes/234567'), { uid: 'bob', name: 'Bob' });
 
       await setDoc(doc(db, 'friendships/alice__bob'), {
         requesterId: 'alice',

@@ -4,6 +4,7 @@ import {
   doc,
   getDoc,
   updateDoc,
+  writeBatch,
   runTransaction
 } from '@angular/fire/firestore';
 import { Auth as FirebaseAuth } from '@angular/fire/auth';

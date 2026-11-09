@@ -173,7 +173,11 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.friendCode == code;
 
-      allow update, delete: if false;
+      allow update: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']);
+      allow delete: if false;
     }
 
     match /friendships/{friendshipId} {

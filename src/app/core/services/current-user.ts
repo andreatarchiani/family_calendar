@@ -33,6 +33,14 @@ export class CurrentUser {
 
 
 
+  async updateName(name: string) {
+    const user = this.userSubject.value;
+    if (!user) throw new Error('Utente non autenticato.');
+
+    await this.userService.updateName(user.uid, name);
+    this.userSubject.next({ ...user, name });
+  }
+
   get currentUser() {
 
     return this.userSubject.value;

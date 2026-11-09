@@ -7,9 +7,16 @@
 
     <div class="account-area">
         @if(user) {
-            <span class="account-name" [style.color]="user.color">
-                {{ user.name }}
-            </span>
+            <button
+                type="button"
+                class="account-name-button"
+                [style.color]="user.color"
+                (click)="openNameEditor()"
+                matTooltip="Modifica il tuo nome"
+                aria-label="Modifica il tuo nome">
+                <span class="account-name">{{ user.name }}</span>
+                <mat-icon>edit</mat-icon>
+            </button>
         }
 
         <button mat-icon-button matTooltip="Logout" (click)="logout()">
@@ -17,6 +24,53 @@
         </button>
     </div>
 </header>
+
+
+@if(showNameEditor) {
+    <div class="dialog-backdrop" (click)="cancelNameEditor()">
+        <section
+            class="name-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="name-dialog-title"
+            (click)="$event.stopPropagation()">
+            <div class="name-dialog-icon"><mat-icon>person</mat-icon></div>
+            <h2 id="name-dialog-title">Modifica il tuo nome</h2>
+            <p>Il nuovo nome sarà visibile ai tuoi amici su Family Calendar.</p>
+            <label class="name-input-label" for="profile-name">Nome</label>
+            <input
+                id="profile-name"
+                class="name-input"
+                type="text"
+                maxlength="40"
+                autocomplete="name"
+                [value]="editedName"
+                (input)="onNameInput($event)"
+                (keydown.enter)="saveName()"
+                [disabled]="isSavingName"
+                placeholder="Inserisci il tuo nome">
+            @if(nameError) {
+                <p class="name-error" role="alert">{{ nameError }}</p>
+            }
+            <div class="dialog-actions">
+                <button
+                    type="button"
+                    class="cancel-button"
+                    (click)="cancelNameEditor()"
+                    [disabled]="isSavingName">
+                    Annulla
+                </button>
+                <button
+                    type="button"
+                    class="save-name-button"
+                    (click)="saveName()"
+                    [disabled]="isSavingName || !editedName.trim()">
+                    {{ isSavingName ? 'Salvataggio...' : 'Salva' }}
+                </button>
+            </div>
+        </section>
+    </div>
+}
 
 @if(showLogoutConfirmation) {
     <div class="dialog-backdrop" (click)="cancelLogout()">
