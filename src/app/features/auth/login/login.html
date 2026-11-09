@@ -64,6 +64,7 @@
 
     <ng-template #verificationPending>
       <div class="verification-pending" role="status" aria-live="polite">
+        <p class="message error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
         <span class="loading-spinner" aria-hidden="true"></span>
         <h2>Verifica la tua email</h2>
         <p>Abbiamo inviato un messaggio a:</p>
