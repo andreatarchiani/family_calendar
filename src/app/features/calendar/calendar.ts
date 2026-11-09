@@ -614,38 +614,29 @@ export class Calendar {
 
   getAgendaEvents() {
 
-    console.log(
-      'EVENTI AGENDA:',
-      this.events
-    );
-
+    const today = this.formatLocalDate(new Date());
 
     return this.events
 
       .filter(event => {
-
 
         const authorId =
           event.authorId
           ??
           event.author?.uid;
 
+        const startDate = event.startDate ?? event.date;
+        const endDate = event.endDate ?? startDate;
 
-        console.log(
-          'CONTROLLO EVENTO',
-          event.title,
-          authorId,
-          this.selectedUsers
-        );
-
-
-        return this.selectedUsers.includes(authorId);
-
+        // Mostra eventi che iniziano oggi/in futuro o che sono ancora in corso oggi.
+        // Gli eventi terminati prima di oggi restano nel calendario, ma non in Agenda.
+        return this.selectedUsers.includes(authorId)
+          && !!endDate
+          && endDate >= today;
 
       })
 
       .sort((a, b) => {
-
 
         const dateA = a.startDate ?? a.date;
         const dateB = b.startDate ?? b.date;
@@ -653,12 +644,9 @@ export class Calendar {
         return new Date(`${dateA}T${a.startTime || '00:00'}`).getTime()
           - new Date(`${dateB}T${b.startTime || '00:00'}`).getTime();
 
-
       });
 
-
   }
-
 
 
 
