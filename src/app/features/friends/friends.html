@@ -1,93 +1,142 @@
 <section class="friends-page">
-  <h2>Amici</h2>
-
-  <div class="card friend-code-card">
-    <h3>Il tuo codice amico</h3>
-    <p>Condividi questo codice con chi vuoi aggiungere. Per inviare una richiesta, l'altra persona dovrà inserirlo nella propria pagina Amici.</p>
-    <div class="my-code-row">
-      <strong class="my-code">{{ friendCode || '------' }}</strong>
-      <button mat-stroked-button type="button" (click)="copyFriendCode()" [disabled]="!friendCode">
-        <mat-icon>content_copy</mat-icon>
-        Copia codice
-      </button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Aggiungi un amico</h3>
-    <div class="search-row">
-      <input
-        [(ngModel)]="searchTerm"
-        inputmode="numeric"
-        maxlength="6"
-        autocomplete="off"
-        placeholder="Inserisci il codice a 6 cifre..."
-        (keyup.enter)="searchUsers()"
-      />
-      <button mat-flat-button color="primary" (click)="searchUsers()" [disabled]="loading">
-        Cerca
-      </button>
-    </div>
-
-    @if (loading) {
-      <p>Ricerca in corso...</p>
-    }
-
-    @if (searchResult; as user) {
-      <div class="item">
-        <span>{{ user.name }}</span>
-        <button mat-stroked-button color="primary" (click)="sendRequest(user.uid)">
-          Invia richiesta
-        </button>
-      </div>
-    }
-  </div>
-
-  <div class="card">
-    <h3>Richieste in arrivo</h3>
-    @if (incomingRequests.length) {
-      @for (request of incomingRequests; track request.id) {
-        <div class="item">
-          <span>Richiesta da {{ request.requesterName || 'Utente' }}</span>
-          <div class="actions">
-            <button mat-flat-button color="primary" (click)="acceptRequest(request.id!)">Accetta</button>
-            <button mat-stroked-button (click)="declineRequest(request.id!)">Rifiuta</button>
-          </div>
+    <header class="friends-header">
+        <div>
+            <p class="eyebrow">LA TUA RETE</p>
+            <h1>Amici</h1>
+            <p class="header-copy">Condividi i tuoi eventi e resta in contatto con le persone importanti.</p>
         </div>
-      }
-    } @else {
-      <p>Nessuna richiesta</p>
-    }
-  </div>
+        <div class="friends-header-icon"><mat-icon>group</mat-icon></div>
+    </header>
 
-  <div class="card">
-    <h3>I tuoi amici</h3>
-    @if (friends.length > 0) {
-      <p>Numero amici: {{ friends.length }}</p>
-      @for (friend of friends; track friend.uid) {
-        <mat-card class="friend-card">
-          <div class="friend">
-            <div class="avatar" [style.background]="friendColors[friend.uid] || '#cccccc'">
-              {{ (friendNames[friend.uid] || friend.name)?.charAt(0)?.toUpperCase() }}
+    <section class="friend-code-card">
+        <div class="card-topline">
+            <span class="card-icon"><mat-icon>qr_code_2</mat-icon></span>
+            <span class="card-kicker">IL TUO CODICE PERSONALE</span>
+        </div>
+        <h2>Fatti trovare facilmente</h2>
+        <p>Condividi questo codice con chi vuoi aggiungere. Potrà inserirlo nella propria pagina Amici per inviarti una richiesta.</p>
+        <div class="my-code-row">
+            <strong class="my-code">{{ friendCode || '------' }}</strong>
+            <button mat-stroked-button type="button" class="copy-code-button" (click)="copyFriendCode()" [disabled]="!friendCode">
+                <mat-icon>content_copy</mat-icon>
+                Copia codice
+            </button>
+        </div>
+    </section>
+
+    <section class="friends-section add-section">
+        <div class="section-heading">
+            <span class="section-icon"><mat-icon>person_add</mat-icon></span>
+            <div>
+                <h2>Aggiungi un amico</h2>
+                <p>Inserisci il suo codice a 6 cifre.</p>
             </div>
+        </div>
+        <div class="search-row">
             <input
-              class="friend-name"
-              [value]="friendNames[friend.uid] || friend.name"
-              (change)="changeFriendName(friend.uid, $event)"
-              placeholder="Nome amico"
+                [(ngModel)]="searchTerm"
+                inputmode="numeric"
+                maxlength="6"
+                autocomplete="off"
+                placeholder="Codice amico"
+                (keyup.enter)="searchUsers()"
             />
-            <input
-              type="color"
-              class="color-picker"
-              [value]="friendColors[friend.uid] || '#cccccc'"
-              (change)="changeColor(friend.uid, $event)"
-              title="Cambia colore"
-            />
-          </div>
-        </mat-card>
-      }
-    } @else {
-      <p>Ancora nessun amico</p>
-    }
-  </div>
+            <button mat-flat-button color="primary" (click)="searchUsers()" [disabled]="loading">
+                <mat-icon>search</mat-icon>
+                Cerca
+            </button>
+        </div>
+        @if (loading) {
+            <div class="inline-status"><mat-spinner diameter="20"></mat-spinner><span>Ricerca in corso...</span></div>
+        }
+        @if (searchResult; as user) {
+            <div class="search-result">
+                <span class="result-avatar">{{ user.name?.charAt(0)?.toUpperCase() }}</span>
+                <span class="result-name">{{ user.name }}</span>
+                <button mat-stroked-button color="primary" (click)="sendRequest(user.uid)">Invia richiesta</button>
+            </div>
+        }
+    </section>
+
+    <section class="friends-section">
+        <div class="section-heading">
+            <span class="section-icon"><mat-icon>mark_email_unread</mat-icon></span>
+            <div>
+                <h2>Richieste in arrivo</h2>
+                <p>Le persone che desiderano aggiungerti.</p>
+            </div>
+            @if(incomingRequests.length) {
+                <span class="count-badge">{{ incomingRequests.length }}</span>
+            }
+        </div>
+        @if (incomingRequests.length) {
+            <div class="request-list">
+                @for (request of incomingRequests; track request.id) {
+                    <div class="request-item">
+                        <span class="request-avatar"><mat-icon>person</mat-icon></span>
+                        <span class="request-name">Richiesta da <strong>{{ request.requesterName || 'Utente' }}</strong></span>
+                        <div class="actions">
+                            <button mat-flat-button color="primary" (click)="acceptRequest(request.id!)">Accetta</button>
+                            <button mat-stroked-button (click)="declineRequest(request.id!)">Rifiuta</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        } @else {
+            <div class="section-empty compact-empty">
+                <mat-icon>inbox</mat-icon>
+                <span>Non hai richieste in sospeso.</span>
+            </div>
+        }
+    </section>
+
+    <section class="friends-section">
+        <div class="section-heading">
+            <span class="section-icon"><mat-icon>diversity_3</mat-icon></span>
+            <div>
+                <h2>I tuoi amici</h2>
+                <p>Personalizza il nome e il colore con cui li visualizzi.</p>
+            </div>
+            <span class="count-badge">{{ friends.length }}</span>
+        </div>
+        @if (friends.length > 0) {
+            <div class="friends-list">
+                @for (friend of friends; track friend.uid) {
+                    <mat-card class="friend-card">
+                        <div class="friend">
+                            <div class="avatar" [style.background]="friendColors[friend.uid] || '#cccccc'">
+                                {{ (friendNames[friend.uid] || friend.name)?.charAt(0)?.toUpperCase() }}
+                            </div>
+                            <div class="friend-details">
+                                <span class="friend-caption">AMICO</span>
+                                <input
+                                    class="friend-name"
+                                    [value]="friendNames[friend.uid] || friend.name"
+                                    (change)="changeFriendName(friend.uid, $event)"
+                                    placeholder="Nome amico"
+                                />
+                            </div>
+                            <label class="color-control">
+                                <input
+                                    type="color"
+                                    class="color-picker"
+                                    [value]="friendColors[friend.uid] || '#cccccc'"
+                                    (change)="changeColor(friend.uid, $event)"
+                                    title="Cambia colore"
+                                    aria-label="Cambia colore amico"
+                                />
+                                <mat-icon>palette</mat-icon>
+                            </label>
+                        </div>
+                    </mat-card>
+                }
+            </div>
+        } @else {
+            <div class="section-empty">
+                <span class="empty-people-icon"><mat-icon>group_add</mat-icon></span>
+                <h3>La tua lista è ancora vuota</h3>
+                <p>Quando aggiungerai qualcuno, lo troverai qui. Condividi il tuo codice per iniziare!</p>
+            </div>
+        }
+    </section>
 </section>
