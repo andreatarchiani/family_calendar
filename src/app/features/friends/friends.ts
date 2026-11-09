@@ -41,11 +41,14 @@ export class Friends implements OnInit {
   friendColors: Record<string, string> = {};
   friendNames: Record<string, string> = {};
   private pendingInviteCode = '';
+  private pendingInviteToken = '';
   showQrCode = false;
   qrCodeUrl = '';
 
   ngOnInit() {
     this.route.queryParamMap.subscribe(params => {
+      const token = params.get('invite') ?? '';
+      if (/^[0-9a-f-]{36}$/i.test(token)) this.pendingInviteToken = token;
       const code = params.get('code') ?? '';
       if (/^\d{6}$/.test(code)) {
         this.pendingInviteCode = code;
@@ -59,6 +62,9 @@ export class Friends implements OnInit {
         this.currentUser = user;
         this.loadFriendColors();
         void this.loadData();
+        if (this.pendingInviteToken) {
+          void this.acceptSharedInvite(this.pendingInviteToken);
+        }
         if (this.pendingInviteCode) {
           this.searchTerm = this.pendingInviteCode;
           void this.searchUsers();
@@ -70,13 +76,19 @@ export class Friends implements OnInit {
     return this.currentUser?.friendCode ?? '';
   }
 
-  openQrCode() {
-    if (!this.friendCode) return;
-    const inviteUrl = new URL('/friends', window.location.origin);
-    inviteUrl.searchParams.set('code', this.friendCode);
+  async openQrCode() {
+    if (!this.currentUser?.uid) return;
+    try {
+      const token = await this.friendshipService.createInvite(this.currentUser.uid, this.currentUser.name);
+      const inviteUrl = new URL('/friends', window.location.origin);
+      inviteUrl.searchParams.set('invite', token);
     const encodedUrl = encodeURIComponent(inviteUrl.toString());
     this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&format=png&ecc=H&data=${encodedUrl}`;
-    this.showQrCode = true;
+      this.showQrCode = true;
+    } catch (error) {
+      console.error('Errore creazione invito QR', error);
+      this.snackBar.open('Impossibile creare il QR code. Riprova.', 'OK', { duration: 2500 });
+    }
   }
 
   closeQrCode() {
@@ -84,11 +96,12 @@ export class Friends implements OnInit {
   }
 
   async inviteFriend() {
-    if (!this.friendCode) return;
-
-    const inviteUrl = new URL('/friends', window.location.origin);
-    inviteUrl.searchParams.set('code', this.friendCode);
-    const inviteText = `Ti invito su Family Calendar! Aggiungimi ai tuoi amici per condividere gli eventi. Apri il link e invia la richiesta: ${inviteUrl.toString()}`;
+    if (!this.currentUser?.uid) return;
+    try {
+      const token = await this.friendshipService.createInvite(this.currentUser.uid, this.currentUser.name);
+      const inviteUrl = new URL('/friends', window.location.origin);
+      inviteUrl.searchParams.set('invite', token);
+      const inviteText = `Ti invito su Family Calendar! Apri questo link e diventeremo automaticamente amici: ${inviteUrl.toString()}`;
 
     if (typeof navigator.share === 'function') {
       try {
@@ -105,11 +118,27 @@ export class Friends implements OnInit {
       return;
     }
 
-    try {
+      try {
       await navigator.clipboard.writeText(inviteText);
       this.snackBar.open('Invito copiato: puoi incollarlo dove vuoi', 'OK', { duration: 3000 });
     } catch {
       this.snackBar.open('Condivisione non supportata da questo browser', 'OK', { duration: 2500 });
+      }
+    } catch (error) {
+      console.error('Errore creazione invito', error);
+      this.snackBar.open('Impossibile creare l’invito. Riprova.', 'OK', { duration: 2500 });
+    }
+  }
+
+  private async acceptSharedInvite(token: string) {
+    if (!this.currentUser?.uid) return;
+    try {
+      const result = await this.friendshipService.acceptInvite(token, this.currentUser.uid);
+      await this.loadData();
+      this.snackBar.open(result === 'accepted' ? 'Invito accettato: ora siete amici!' : 'Siete già amici.', 'OK', { duration: 3500 });
+    } catch (error) {
+      console.error('Errore accettazione invito condiviso', error);
+      this.snackBar.open(error instanceof Error ? error.message : 'Impossibile accettare l’invito.', 'OK', { duration: 3500 });
     }
   }
 

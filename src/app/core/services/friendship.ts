@@ -7,6 +7,7 @@ import {
   getDocs,
   query,
   runTransaction,
+  setDoc,
   where,
   arrayUnion
 } from '@angular/fire/firestore';
@@ -23,6 +24,77 @@ export interface Friendship {
 @Injectable({ providedIn: 'root' })
 export class FriendshipService {
   private firestore = inject(Firestore);
+
+  async createInvite(senderId: string, senderName: string): Promise<string> {
+    if (!senderId) throw new Error('Utente non autenticato.');
+    const token = crypto.randomUUID();
+    await setDoc(doc(this.firestore, 'friendInvites', token), {
+      senderId,
+      senderName,
+      status: 'pending',
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000
+    });
+    return token;
+  }
+
+  async acceptInvite(token: string, recipientId: string): Promise<'accepted' | 'already-friends'> {
+    if (!token || !recipientId) throw new Error('Invito non valido.');
+    const inviteRef = doc(this.firestore, 'friendInvites', token);
+    const friendshipId = `invite_${token}`;
+    const friendshipRef = doc(this.firestore, 'friendships', friendshipId);
+
+    return runTransaction(this.firestore, async transaction => {
+      const inviteSnapshot = await transaction.get(inviteRef);
+      if (!inviteSnapshot.exists()) throw new Error('Questo invito non esiste o non è più disponibile.');
+
+      const invite = inviteSnapshot.data();
+      if (invite['senderId'] === recipientId) throw new Error('Non puoi accettare un tuo invito.');
+      if (invite['status'] === 'accepted') {
+        if (invite['recipientId'] === recipientId) return 'already-friends';
+        throw new Error('Questo invito è già stato utilizzato.');
+      }
+      if (invite['status'] !== 'pending' || Number(invite['expiresAt']) <= Date.now()) {
+        throw new Error('Questo invito è scaduto. Chiedi un nuovo link.');
+      }
+
+      const senderRef = doc(this.firestore, 'users', invite['senderId']);
+      const recipientRef = doc(this.firestore, 'users', recipientId);
+      const [friendshipSnapshot, senderSnapshot, recipientSnapshot] = await Promise.all([
+        transaction.get(friendshipRef),
+        transaction.get(senderRef),
+        transaction.get(recipientRef)
+      ]);
+      if (!senderSnapshot.exists() || !recipientSnapshot.exists()) {
+        throw new Error('Impossibile completare l’invito. Verifica il tuo account e riprova.');
+      }
+      if (friendshipSnapshot.exists()) return 'already-friends';
+
+      const createdAt = Date.now();
+      transaction.update(inviteRef, {
+        status: 'accepted',
+        recipientId,
+        acceptedAt: createdAt
+      });
+      transaction.set(friendshipRef, {
+        requesterId: invite['senderId'],
+        addresseeId: recipientId,
+        requesterName: invite['senderName'] || 'Utente',
+        status: 'accepted',
+        createdAt,
+        inviteId: token
+      });
+      transaction.update(senderRef, {
+        friends: arrayUnion(recipientId),
+        lastAcceptedFriendshipId: friendshipId
+      });
+      transaction.update(recipientRef, {
+        friends: arrayUnion(invite['senderId']),
+        lastAcceptedFriendshipId: friendshipId
+      });
+      return 'accepted';
+    });
+  }
 
   async sendRequest(requesterId: string, addresseeId: string, requesterName: string) {
     if (!requesterId || !addresseeId || requesterId === addresseeId) return null;

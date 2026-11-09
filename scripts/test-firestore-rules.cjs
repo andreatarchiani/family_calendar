@@ -67,6 +67,14 @@ async function main() {
         friends: []
       });
 
+      await setDoc(doc(db, 'friendInvites/test-invite-token-1234567890abcdef'), {
+        senderId: 'alice',
+        senderName: 'Alice',
+        status: 'pending',
+        createdAt: Date.now(),
+        expiresAt: Date.now() + 86400000
+      });
+
       await setDoc(doc(db, 'friendCodes/123456'), { uid: 'alice', name: 'Alice' });
       await setDoc(doc(db, 'friendCodes/234567'), { uid: 'bob', name: 'Bob' });
 
@@ -274,6 +282,39 @@ async function main() {
         friends: ['bob', 'carol'],
         lastAcceptedFriendshipId: 'alice__bob'
       })));
+    await test('Un invito può essere accettato creando amicizia e aggiornando entrambi i profili', async () => {
+      const batch = writeBatch(bob);
+      batch.update(doc(bob, 'friendInvites/test-invite-token-1234567890abcdef'), {
+        status: 'accepted',
+        recipientId: 'bob',
+        acceptedAt: Date.now()
+      });
+      batch.set(doc(bob, 'friendships/invite_test-invite-token-1234567890abcdef'), {
+        requesterId: 'alice',
+        addresseeId: 'bob',
+        requesterName: 'Alice',
+        status: 'accepted',
+        createdAt: Date.now(),
+        inviteId: 'test-invite-token-1234567890abcdef'
+      });
+      batch.update(doc(bob, 'users/alice'), {
+        friends: ['bob'],
+        lastAcceptedFriendshipId: 'invite_test-invite-token-1234567890abcdef'
+      });
+      batch.update(doc(bob, 'users/bob'), {
+        friends: ['alice'],
+        lastAcceptedFriendshipId: 'invite_test-invite-token-1234567890abcdef'
+      });
+      await assertSucceeds(batch.commit());
+    });
+
+    await test('Un utente non può accettare un invito a nome di un altro', () =>
+      assertFails(updateDoc(doc(stranger, 'friendInvites/test-invite-token-1234567890abcdef'), {
+        status: 'accepted',
+        recipientId: 'carol',
+        acceptedAt: Date.now()
+      })));
+
     await test('Un utente può inviare una richiesta di amicizia', () =>
       assertSucceeds(setDoc(doc(alice, 'friendships/alice__carol'), {
         requesterId: 'alice',
