@@ -265,3 +265,17 @@
     .actions { width: 100%; justify-content: flex-end; }
     .friend { gap: 10px; padding: 11px; }
 }
+
+.loading-spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #dce8f8;
+    border-top-color: #2868c7;
+    border-radius: 50%;
+    animation: friends-spin .7s linear infinite;
+}
+
+@keyframes friends-spin {
+    to { transform: rotate(360deg); }
+}
