@@ -1,10 +1,7 @@
 .content {
-
+    display: block;
     min-height: 100vh;
-
-    padding-bottom:
-        calc(90px + env(safe-area-inset-bottom));
-
+    min-height: 100dvh;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
     box-sizing: border-box;
-
 }
