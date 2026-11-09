@@ -154,6 +154,11 @@ service cloud.firestore {
                 !resource.data.keys().hasAny(['friends'])
                 && request.resource.data.friends == [request.auth.uid]
               )
+              || (
+                resource.data.friends is list
+                && request.resource.data.friends == resource.data.friends
+                && resource.data.friends.hasAny([request.auth.uid])
+              )
             )
             && getAfter(/databases/$(database)/documents/friendships/$(request.resource.data.lastAcceptedFriendshipId)).data.status == 'accepted'
             && getAfter(/databases/$(database)/documents/friendships/$(request.resource.data.lastAcceptedFriendshipId)).data.requesterId == userId
