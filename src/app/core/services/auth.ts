@@ -5,7 +5,6 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   GoogleAuthProvider,
-  OAuthProvider,
   signOut,
   authState,
   signInWithPopup,
@@ -20,12 +19,9 @@ import {
 export class Auth {
   private auth = inject(FirebaseAuth);
   private googleAuthProvider = new GoogleAuthProvider();
-  private appleAuthProvider = new OAuthProvider('apple.com');
 
   constructor() {
     this.googleAuthProvider.setCustomParameters({ prompt: 'select_account' });
-    this.appleAuthProvider.addScope('email');
-    this.appleAuthProvider.addScope('name');
   }
 
   async loginWithGoogle() {
@@ -33,10 +29,6 @@ export class Auth {
     return result.user;
   }
 
-  async loginWithApple() {
-    const result = await signInWithPopup(this.auth, this.appleAuthProvider);
-    return result.user;
-  }
 
   async login(email: string, password: string) {
     const result = await signInWithEmailAndPassword(this.auth, email, password);
