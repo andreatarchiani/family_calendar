@@ -56,7 +56,7 @@ export class Header {
   }
 
   async saveName() {
-    const name = this.editedName.trim().replace(/\\s+/g, ' ');
+    const name = this.editedName.trim().replace(/\s+/g, ' ');
     if (name.length < 2 || name.length > 40) {
       this.nameError = 'Inserisci un nome da 2 a 40 caratteri.';
       return;
