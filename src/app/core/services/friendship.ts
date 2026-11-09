@@ -77,6 +77,12 @@ export class FriendshipService {
         createdAt,
         inviteId: token
       });
+      // Mantiene il profilo del mittente coerente con le amicizie create
+      // tramite link, così il destinatario può leggerlo dopo l'accettazione.
+      transaction.update(doc(this.firestore, 'users', invite['senderId']), {
+        friends: arrayUnion(recipientId),
+        lastAcceptedFriendshipId: friendshipId
+      });
       return 'accepted';
     });
 
