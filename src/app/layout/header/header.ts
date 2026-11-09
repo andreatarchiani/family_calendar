@@ -29,16 +29,31 @@ export class Header {
   private router = inject(Router);
 
   appVersion = APP_CONFIG.version;
+  showLogoutConfirmation = false;
+  isLoggingOut = false;
 
-  async logout() {
-    const confirmed = window.confirm('Vuoi davvero uscire da Family Calendar?');
+  logout() {
+    this.showLogoutConfirmation = true;
+  }
 
-    if (!confirmed) {
+  cancelLogout() {
+    this.showLogoutConfirmation = false;
+  }
+
+  async confirmLogout() {
+    if (this.isLoggingOut) {
       return;
     }
 
-    await this.auth.logout();
-    this.router.navigate(['/login']);
+    this.isLoggingOut = true;
+
+    try {
+      await this.auth.logout();
+      this.showLogoutConfirmation = false;
+      await this.router.navigate(['/login']);
+    } finally {
+      this.isLoggingOut = false;
+    }
   }
 
 }
