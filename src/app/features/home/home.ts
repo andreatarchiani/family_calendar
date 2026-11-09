@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { from, map, switchMap, tap, catchError, shareReplay, firstValueFrom } from 'rxjs';
+import { from, map, switchMap, tap, catchError, shareReplay, firstValueFrom, filter } from 'rxjs';
 
 import { Router } from '@angular/router';
 
@@ -127,9 +127,11 @@ export class Home {
 
 
   private eventsWithAuthor$ = this.currentUser.user$.pipe(
+    // CurrentUser parte da null e viene valorizzato solo dopo il ripristino
+    // della sessione Firebase: non trattare quel valore iniziale come lista vuota.
+    filter((user): user is NonNullable<typeof user> => user !== null),
     switchMap(user => {
       this.isLoading = true;
-      if (!user) return from([[]]);
 
       return from(this.friendshipService.getFriends(user.uid)).pipe(
         switchMap(friendIds => this.eventService.getVisibleEvents(user.uid, friendIds)),
