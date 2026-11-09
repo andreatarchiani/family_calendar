@@ -1,152 +1,84 @@
 <div class="home-container">
-
-
-    <div class="home-header">
-
-        <h1>Ciao!</h1>
-
-        <p>
-            Organizza gli impegni della famiglia
-        </p>
-
-    </div>
-
-
+    <header class="home-header">
+        <div>
+            <p class="eyebrow">FAMILY CALENDAR</p>
+            <h1>Ciao! <span class="wave">✦</span></h1>
+            <p class="welcome-copy">Tieni sotto controllo gli impegni e i momenti da condividere.</p>
+        </div>
+        <div class="header-decoration" aria-hidden="true">
+            <span class="decoration-dot dot-one"></span>
+            <span class="decoration-dot dot-two"></span>
+            <span class="decoration-dot dot-three"></span>
+            <mat-icon>event_available</mat-icon>
+        </div>
+    </header>
 
     @if(nextEvent$ | async; as nextEvent) {
-
-    <section class="next-event">
-
-        <h2 class="section-title">
-            Prossimo evento
-        </h2>
-
-
-        <app-event-card [event]="nextEvent" [highlight]="true" [currentUserId]="currentUser.currentUser?.uid"
-            (edit)="editEvent($event)" (delete)="deleteEvent($event)">
-        </app-event-card>
-
-
-    </section>
-
+        <section class="next-event">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">DA TENERE A MENTE</p>
+                    <h2 class="section-title">Il prossimo evento</h2>
+                </div>
+                <span class="section-symbol">✦</span>
+            </div>
+            <app-event-card [event]="nextEvent" [highlight]="true" [currentUserId]="currentUser.currentUser?.uid"
+                (edit)="editEvent($event)" (delete)="deleteEvent($event)">
+            </app-event-card>
+        </section>
     }
-
-
 
     <section class="future-events">
-
         @if (isLoading) {
-
-        <div class="loading-state">
-            <mat-spinner diameter="32"></mat-spinner>
-            <p>Caricamento eventi...</p>
-        </div>
-
+            <div class="loading-state">
+                <mat-spinner diameter="32"></mat-spinner>
+                <p>Caricamento eventi...</p>
+            </div>
         } @else {
-
-        @if(futureEventGroups$ | async; as groups) {
-
-        @if(groups.length > 0) {
-
-        @for(group of groups; track group.title) {
-
-        <h2 class="group-title">
-            {{ group.title }}
-        </h2>
-
-        @for(event of group.events; track event.id) {
-
-        <app-event-card [event]="event" [currentUserId]="currentUser.currentUser?.uid" (edit)="editEvent($event)"
-            (delete)="deleteEvent($event)">
-        </app-event-card>
-
+            @if(futureEventGroups$ | async; as groups) {
+                @if(groups.length > 0) {
+                    @for(group of groups; track group.title) {
+                        <div class="group-block">
+                            <h2 class="group-title"><span>{{ group.title }}</span></h2>
+                            @for(event of group.events; track event.id) {
+                                <app-event-card [event]="event" [currentUserId]="currentUser.currentUser?.uid" (edit)="editEvent($event)"
+                                    (delete)="deleteEvent($event)">
+                                </app-event-card>
+                            }
+                        </div>
+                    }
+                } @else {
+                    <div class="empty-state">
+                        <div class="empty-icon"><mat-icon>event_note</mat-icon></div>
+                        <h3>Nessun evento in programma</h3>
+                        <p>Quando aggiungerai un appuntamento, lo troverai qui.</p>
+                    </div>
+                }
+            }
         }
-
-        }
-
-        } @else {
-
-        <p class="empty-state">
-            Nessun evento programmato
-        </p>
-
-        }
-
-        }
-
-        }
-
     </section>
-
-
-
 
     @if(pastEvents$ | async; as pastEvents) {
-
-
-    @if(pastEvents.length > 0) {
-
-
-    <div class="past-divider" (click)="togglePastEvents()">
-
-
-        <span>
-            Eventi passati
-        </span>
-
-
-        <mat-icon>
-            {{ showPastEvents ? 'expand_less' : 'expand_more' }}
-        </mat-icon>
-
-
-    </div>
-
-
-
-    @if(showPastEvents) {
-
-
-    <section class="past-events">
-
-
-        @for(event of pastEvents; track event.id) {
-
-
-        <app-event-card [event]="event" [past]="true" [currentUserId]="currentUser.currentUser?.uid"
-            (edit)="editEvent($event)" (delete)="deleteEvent($event)">
-        </app-event-card>
-
-
+        @if(pastEvents.length > 0) {
+            <button class="past-divider" type="button" (click)="togglePastEvents()">
+                <span class="past-icon"><mat-icon>history</mat-icon></span>
+                <span class="past-label">Eventi passati <small>{{ pastEvents.length }} {{ pastEvents.length === 1 ? 'evento' : 'eventi' }}</small></span>
+                <mat-icon class="past-chevron">{{ showPastEvents ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+            @if(showPastEvents) {
+                <section class="past-events">
+                    @for(event of pastEvents; track event.id) {
+                        <app-event-card [event]="event" [past]="true" [currentUserId]="currentUser.currentUser?.uid"
+                            (edit)="editEvent($event)" (delete)="deleteEvent($event)">
+                        </app-event-card>
+                    }
+                </section>
+            }
         }
-
-
-    </section>
-
-
     }
-
-
-    }
-
-
-    }
-
-
-
 
     <button class="fab-create" mat-fab extended color="primary" (click)="createEvent()">
-
-
-        <mat-icon>
-            add
-        </mat-icon>
-
-
-        Crea Evento
-
-
+        <mat-icon>add</mat-icon>
+        Crea evento
     </button>
-
-
 </div>
