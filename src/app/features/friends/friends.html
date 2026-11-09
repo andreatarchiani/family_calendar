@@ -47,7 +47,7 @@
             </button>
         </div>
         @if (loading) {
-            <div class="inline-status"><mat-spinner diameter="20"></mat-spinner><span>Ricerca in corso...</span></div>
+            <div class="inline-status"><span class="loading-spinner" aria-hidden="true"></span><span>Ricerca in corso...</span></div>
         }
         @if (searchResult; as user) {
             <div class="search-result">
