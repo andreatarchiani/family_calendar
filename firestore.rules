@@ -159,22 +159,7 @@ service cloud.firestore {
             && getAfter(/databases/$(database)/documents/friendships/$(request.resource.data.lastAcceptedFriendshipId)).data.requesterId == userId
             && getAfter(/databases/$(database)/documents/friendships/$(request.resource.data.lastAcceptedFriendshipId)).data.addresseeId == request.auth.uid
           )
-          ||
-          (
-            request.auth.uid == userId
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends', 'lastAcceptedFriendshipId'])
-            && resource.data.friends is list
-            && request.resource.data.friends is list
-            && request.resource.data.friends.hasAll(resource.data.friends)
-            && request.resource.data.friends.size() == resource.data.friends.size() + 1
-            && request.resource.data.lastAcceptedFriendshipId is string
-            && getAfter(/databases/$(database)/documents/friendships/$(request.resource.data.lastAcceptedFriendshipId)).data.status == 'accepted'
-            && getAfter(/databases/$(database)/documents/friendships/$(request.resource.data.lastAcceptedFriendshipId)).data.requesterId is string
-            && getAfter(/databases/$(database)/documents/friendships/$(request.resource.data.lastAcceptedFriendshipId)).data.addresseeId == userId
-            && request.resource.data.friends.hasAny([
-              getAfter(/databases/$(database)/documents/friendships/$(request.resource.data.lastAcceptedFriendshipId)).data.requesterId
-            ])
-          )
+
         );
 
       allow delete: if false;

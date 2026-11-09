@@ -303,10 +303,6 @@ async function main() {
         friends: ['bob'],
         lastAcceptedFriendshipId: 'invite_test-invite-token-1234567890abcdef'
       }));
-      await assertSucceeds(updateDoc(doc(bob, 'users/bob'), {
-        friends: ['alice'],
-        lastAcceptedFriendshipId: 'invite_test-invite-token-1234567890abcdef'
-      }));
     });
 
     await test('Un utente non può accettare un invito a nome di un altro', () =>

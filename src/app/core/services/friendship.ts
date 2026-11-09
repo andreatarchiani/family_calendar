@@ -89,19 +89,16 @@ export class FriendshipService {
       return 'accepted';
     });
 
-    if (result === 'accepted') {
+    if (result === 'accepted' || result === 'already-friends') {
       const inviteSnapshot = await getDoc(inviteRef);
-      const senderId = inviteSnapshot.data()?.['senderId'] as string;
-      await Promise.all([
-        updateDoc(doc(this.firestore, 'users', senderId), {
+      const invite = inviteSnapshot.data();
+      if (invite?.['status'] === 'accepted' && invite['recipientId'] === recipientId) {
+        const senderId = invite['senderId'] as string;
+        await updateDoc(doc(this.firestore, 'users', senderId), {
           friends: arrayUnion(recipientId),
           lastAcceptedFriendshipId: friendshipId
-        }),
-        updateDoc(doc(this.firestore, 'users', recipientId), {
-          friends: arrayUnion(senderId),
-          lastAcceptedFriendshipId: friendshipId
-        })
-      ]);
+        });
+      }
     }
     return result;
   }
