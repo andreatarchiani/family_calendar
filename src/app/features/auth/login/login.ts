@@ -47,6 +47,26 @@ export class Login implements OnInit {
     }
   }
 
+  async cancelVerification(): Promise<void> {
+    this.isLoading = true;
+    this.errorMessage = '';
+    try {
+      // Elimina l'account appena creato: il link di verifica associato non potrà più verificare un utente inesistente.
+      await this.authService.cancelUnverifiedRegistration();
+      sessionStorage.removeItem('familyCalendar.pendingVerificationEmail');
+      this.awaitingVerification = false;
+      this.mode = 'register';
+      this.password = '';
+      this.confirmPassword = '';
+      this.successMessage = 'Registrazione annullata. Puoi registrarti nuovamente quando vuoi.';
+    } catch (error) {
+      console.error('Errore durante l’annullamento della registrazione', error);
+      this.errorMessage = 'Non è stato possibile annullare la registrazione. Riprova.';
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
   private async handleEmailVerificationReturn(): Promise<void> {
     this.isLoading = true;
     try {
