@@ -10,7 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 
-import { from, map, switchMap, tap, catchError, shareReplay } from 'rxjs';
+import { from, map, switchMap, tap, catchError, shareReplay, firstValueFrom } from 'rxjs';
 
 import { Router } from '@angular/router';
 
@@ -127,14 +127,14 @@ export class Home {
           console.log('[FC HOME] Avvio caricamento preferenze e profili', events.length);
 
           // Legge le preferenze una sola volta e chiude subito la sottoscrizione.
-          const preferences = await new Promise<any>(resolve => {
+          const preferences = await firstValueFrom(
             this.friendColorService.getFriendColors(user.uid).pipe(
               catchError(error => {
                 console.error('[FC HOME] ERRORE preferenze colori', error);
                 return from([{}]);
               })
-            ).subscribe(data => resolve(data ?? {}));
-          });
+            )
+          );
 
           const friendColors = preferences.friendColors ?? {};
           const friendNames = preferences.friendNames ?? {};
