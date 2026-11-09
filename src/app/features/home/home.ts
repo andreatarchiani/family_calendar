@@ -27,6 +27,11 @@ interface EventGroup {
   events: any[];
 }
 
+interface FriendPreferences {
+  friendColors?: Record<string, string>;
+  friendNames?: Record<string, string>;
+}
+
 
 
 @Component({
@@ -134,10 +139,10 @@ export class Home {
                 return from([{}]);
               })
             )
-          );
+          ) as FriendPreferences | undefined;
 
-          const friendColors = preferences.friendColors ?? {};
-          const friendNames = preferences.friendNames ?? {};
+          const friendColors = preferences?.friendColors ?? {};
+          const friendNames = preferences?.friendNames ?? {};
 
           // Un solo recupero profilo per autore, anche se ha più eventi.
           const authorIds = [...new Set(events.map(event => event.authorId).filter(Boolean))];
