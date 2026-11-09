@@ -20,6 +20,8 @@ export class Login implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
 
   mode: 'login' | 'register' = 'login';
+  modeTransition = false;
+  private modeTransitionTimer: ReturnType<typeof setTimeout> | null = null;
   name = '';
   email = '';
   password = '';
@@ -36,6 +38,7 @@ export class Login implements OnInit, OnDestroy {
   appVersion = APP_CONFIG.version;
 
   ngOnDestroy(): void {
+    if (this.modeTransitionTimer !== null) clearTimeout(this.modeTransitionTimer);
     this.stopVerificationPolling();
     this.pendingPassword = '';
   }
@@ -160,7 +163,17 @@ export class Login implements OnInit, OnDestroy {
   }
 
   setMode(mode: 'login' | 'register'): void {
+    if (this.mode === mode) return;
+    this.modeTransition = false;
+    if (this.modeTransitionTimer !== null) clearTimeout(this.modeTransitionTimer);
     this.mode = mode;
+    requestAnimationFrame(() => {
+      this.modeTransition = true;
+      this.modeTransitionTimer = setTimeout(() => {
+        this.modeTransition = false;
+        this.modeTransitionTimer = null;
+      }, 380);
+    });
     this.errorMessage = '';
     this.successMessage = '';
     this.password = '';
