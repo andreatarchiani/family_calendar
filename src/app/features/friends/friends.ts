@@ -38,6 +38,8 @@ export class Friends implements OnInit {
   friendColors: Record<string, string> = {};
   friendNames: Record<string, string> = {};
   private pendingInviteCode = '';
+  showQrCode = false;
+  qrCodeUrl = '';
 
   ngOnInit() {
     this.route.queryParamMap.subscribe(params => {
@@ -63,6 +65,19 @@ export class Friends implements OnInit {
 
   get friendCode(): string {
     return this.currentUser?.friendCode ?? '';
+  }
+
+  openQrCode() {
+    if (!this.friendCode) return;
+    const inviteUrl = new URL('/friends', window.location.origin);
+    inviteUrl.searchParams.set('code', this.friendCode);
+    const encodedUrl = encodeURIComponent(inviteUrl.toString());
+    this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&format=png&ecc=H&data=${encodedUrl}`;
+    this.showQrCode = true;
+  }
+
+  closeQrCode() {
+    this.showQrCode = false;
   }
 
   async inviteFriend() {
