@@ -15,7 +15,8 @@ const {
   setDoc,
   updateDoc,
   deleteDoc,
-  writeBatch
+  writeBatch,
+  Timestamp
 } = require('firebase/firestore');
 
 async function main() {
@@ -72,7 +73,7 @@ async function main() {
         senderName: 'Alice',
         status: 'pending',
         createdAt: Date.now(),
-        expiresAt: Date.now() + 86400000
+        expiresAt: Timestamp.fromMillis(Date.now() + 86400000)
       });
 
       await setDoc(doc(db, 'friendCodes/123456'), { uid: 'alice', name: 'Alice' });

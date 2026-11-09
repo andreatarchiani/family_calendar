@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import {
   Firestore,
+  Timestamp,
   collection,
   doc,
   getDoc,
@@ -33,7 +34,7 @@ export class FriendshipService {
       senderName,
       status: 'pending',
       createdAt: Date.now(),
-      expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000
+      expiresAt: Timestamp.fromMillis(Date.now() + 7 * 24 * 60 * 60 * 1000)
     });
     return token;
   }
@@ -54,7 +55,7 @@ export class FriendshipService {
         if (invite['recipientId'] === recipientId) return 'already-friends';
         throw new Error('Questo invito è già stato utilizzato.');
       }
-      if (invite['status'] !== 'pending' || Number(invite['expiresAt']) <= Date.now()) {
+      if (invite['status'] !== 'pending' || invite['expiresAt']?.toMillis?.() <= Date.now()) {
         throw new Error('Questo invito è scaduto. Chiedi un nuovo link.');
       }
 
