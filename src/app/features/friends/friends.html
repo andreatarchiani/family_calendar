@@ -87,7 +87,7 @@
         }
         @if (searchResult; as user) {
             <div class="search-result">
-                <span class="result-avatar">{{ user.name?.charAt(0)?.toUpperCase() }}</span>
+                <span class="result-avatar">{{ user.name?.charAt(0).toUpperCase() }}</span>
                 <span class="result-name">{{ user.name }}</span>
                 <button mat-stroked-button color="primary" (click)="sendRequest(user.uid)">Invia richiesta</button>
             </div>
