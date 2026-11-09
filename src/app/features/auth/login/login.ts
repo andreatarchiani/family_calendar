@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 import { Auth } from '../../../core/services/auth';
@@ -26,6 +26,16 @@ export class Login {
   private userService = inject(UserService);
 
   private router = inject(Router);
+
+  private route = inject(ActivatedRoute);
+
+  private navigateAfterLogin() {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    const destination = returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')
+      ? returnUrl
+      : '/home';
+    void this.router.navigateByUrl(destination);
+  }
 
 
 
@@ -57,9 +67,7 @@ export class Login {
       .then(() => {
 
 
-        this.router.navigate([
-          '/home'
-        ]);
+        this.navigateAfterLogin();
 
 
       })
@@ -120,11 +128,7 @@ export class Login {
 
       // vai alla home
 
-      this.router.navigate([
-
-        '/home'
-
-      ]);
+      this.navigateAfterLogin();
 
 
 
