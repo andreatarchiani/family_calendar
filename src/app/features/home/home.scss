@@ -41,13 +41,6 @@
     letter-spacing: -.8px;
 }
 
-.wave {
-    display: inline-block;
-    margin-left: 4px;
-    color: #dcecff;
-    font-size: 24px;
-}
-
 .welcome-copy {
     max-width: 390px;
     margin: 9px 0 0;
@@ -106,16 +99,6 @@
     font-size: 21px;
     font-weight: 750;
     letter-spacing: -.4px;
-}
-
-.section-symbol {
-    display: grid;
-    place-items: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 11px;
-    color: var(--mat-sys-primary, #2868c7);
-    background: var(--mat-sys-primary-container, #e8f0ff);
 }
 
 .next-event {
