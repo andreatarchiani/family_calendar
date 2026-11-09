@@ -12,6 +12,7 @@ import {
   sendPasswordResetEmail,
   verifyPasswordResetCode,
   confirmPasswordReset,
+  applyActionCode,
   reload,
   User
 } from '@angular/fire/auth';
@@ -60,6 +61,10 @@ export class Auth {
       url: 'https://family-calendar-1e385.web.app/login?passwordReset=1',
       handleCodeInApp: false
     });
+  }
+
+  applyEmailVerificationCode(code: string): Promise<void> {
+    return applyActionCode(this.auth, code);
   }
 
   verifyPasswordResetCode(code: string): Promise<string> {
