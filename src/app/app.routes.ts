@@ -4,23 +4,12 @@ import { authGuard } from './core/guards/auth-guard';
 
 export const routes: Routes = [
 
-    // Firebase Authentication custom email action handler.
-    // Firebase appends mode and oobCode as query parameters.
+    // Branded Firebase email action handler (verification and password reset).
     {
-        path: '__',
-        children: [
-            {
-                path: 'auth',
-                children: [
-                    {
-                        path: 'action',
-                        loadComponent: () =>
-                            import('./features/auth/login/login')
-                                .then(m => m.Login)
-                    }
-                ]
-            }
-        ]
+        path: 'auth/action',
+        loadComponent: () =>
+            import('./features/auth/login/login')
+                .then(m => m.Login)
     },
 
     {
