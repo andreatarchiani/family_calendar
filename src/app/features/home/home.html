@@ -2,7 +2,7 @@
     <header class="home-header">
         <div>
             <p class="eyebrow">FAMILY CALENDAR</p>
-            <h1>Ciao! <span class="wave">✦</span></h1>
+            <h1>Ciao!</h1>
             <p class="welcome-copy">Tieni sotto controllo gli impegni e i momenti da condividere.</p>
         </div>
         <div class="header-decoration" aria-hidden="true">
@@ -20,7 +20,6 @@
                     <p class="eyebrow">DA TENERE A MENTE</p>
                     <h2 class="section-title">Il prossimo evento</h2>
                 </div>
-                <span class="section-symbol">✦</span>
             </div>
             <app-event-card [event]="nextEvent" [highlight]="true" [currentUserId]="currentUser.currentUser?.uid"
                 (edit)="editEvent($event)" (delete)="deleteEvent($event)">
