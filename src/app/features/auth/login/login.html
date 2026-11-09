@@ -69,10 +69,10 @@
         <h2>Verifica la tua email</h2>
         <p>Abbiamo inviato un messaggio a:</p>
         <strong class="pending-email">{{ pendingEmail }}</strong>
-        <p>Apri l’email e premi <strong>Verifica la tua email</strong>. Ti porteremo automaticamente dentro Family Calendar.</p>
+        <p>Apri l’email e premi <strong>Verifica la tua email</strong>. Poi torna qui e accedi con email e password.</p>
         <p class="pending-note">Questa schermata rimarrà aperta fino alla verifica del tuo indirizzo.</p>
         <button class="cancel-verification-button" type="button" (click)="cancelVerification()" [disabled]="isLoading">
-          Annulla registrazione
+          Chiudi
         </button>
       </div>
     </ng-template>
