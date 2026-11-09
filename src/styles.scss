@@ -164,3 +164,40 @@ body {
     .qr-code-frame { width: min(100%, 250px); }
 }
 
+
+/* Family Calendar: consistent notification and confirmation surfaces */
+.family-notification .mdc-snackbar__surface {
+  min-width: min(360px, calc(100vw - 32px)) !important;
+  max-width: calc(100vw - 32px) !important;
+  padding: 4px 8px 4px 16px !important;
+  border: 1px solid #e6ebf2;
+  border-radius: 16px !important;
+  background: #fff !important;
+  color: #202633 !important;
+  box-shadow: 0 12px 36px rgba(20, 39, 68, .16) !important;
+}
+.family-notification .mat-mdc-snack-bar-label {
+  color: #263448 !important;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.family-notification .mat-mdc-button {
+  min-width: 48px;
+  border-radius: 10px;
+  color: #2868c7 !important;
+  font-size: 12px;
+  font-weight: 800;
+}
+.family-confirm-panel .mdc-dialog__surface {
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  background: #fff !important;
+  box-shadow: 0 24px 70px rgba(15, 30, 55, .25) !important;
+}
+@media (max-width: 480px) {
+  .family-notification .mdc-snackbar__surface {
+    min-width: calc(100vw - 24px) !important;
+  }
+}
