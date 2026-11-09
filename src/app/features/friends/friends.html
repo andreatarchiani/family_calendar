@@ -126,6 +126,16 @@
                                 />
                                 <mat-icon>palette</mat-icon>
                             </label>
+                            <button
+                                mat-icon-button
+                                type="button"
+                                class="remove-friend-button"
+                                (click)="removeFriend(friend)"
+                                [attr.aria-label]="'Elimina ' + (friendNames[friend.uid] || friend.name) + ' dagli amici'"
+                                title="Elimina amico"
+                            >
+                                <mat-icon>delete</mat-icon>
+                            </button>
                         </div>
                     </mat-card>
                 }
