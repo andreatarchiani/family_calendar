@@ -251,6 +251,15 @@ export class Login implements OnInit, OnDestroy {
     this.successMessage = '';
   }
 
+  finishPasswordResetOnThisDevice(): void {
+    this.showPasswordReset = false;
+    this.mode = 'login';
+    this.password = '';
+    this.confirmPassword = '';
+    this.errorMessage = '';
+    this.successMessage = 'Password aggiornata. Accedi con la nuova password.';
+  }
+
   async resetPassword(): Promise<void> {
     this.errorMessage = '';
     this.successMessage = '';
