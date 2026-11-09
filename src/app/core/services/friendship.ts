@@ -60,18 +60,9 @@ export class FriendshipService {
         throw new Error('Questo invito è scaduto. Chiedi un nuovo link.');
       }
 
-      const senderRef = doc(this.firestore, 'users', invite['senderId']);
-      const recipientRef = doc(this.firestore, 'users', recipientId);
-      const [friendshipSnapshot, senderSnapshot, recipientSnapshot] = await Promise.all([
-        transaction.get(friendshipRef),
-        transaction.get(senderRef),
-        transaction.get(recipientRef)
-      ]);
-      if (!senderSnapshot.exists() || !recipientSnapshot.exists()) {
-        throw new Error('Impossibile completare l’invito. Verifica il tuo account e riprova.');
-      }
-      if (friendshipSnapshot.exists()) return 'already-friends';
-
+      // L'aggiornamento dell'invito e la creazione dell'amicizia sono atomici.
+      // Non leggiamo i profili o il documento friendship prima dell'accettazione:
+      // le regole Firestore impediscono legittimamente queste letture agli estranei.
       const createdAt = Date.now();
       transaction.update(inviteRef, {
         status: 'accepted',
