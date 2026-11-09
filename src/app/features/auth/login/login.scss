@@ -528,3 +528,79 @@ button:disabled {
   color: #1976d2;
   text-decoration: none;
 }
+
+
+/* Campi password: controllo testuale discreto, senza icone invadenti */
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.password-field input {
+  padding-right: 76px;
+}
+.password-visibility {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 54px;
+  padding: 6px 7px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #718096;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color .16s ease, background .16s ease;
+}
+.password-visibility:hover {
+  color: #1976d2;
+  background: #eef6fd;
+}
+.password-visibility:focus-visible {
+  outline: 2px solid #90caf9;
+  outline-offset: 1px;
+}
+.action-reset-view {
+  width: 100%;
+}
+.action-reset-view .eyebrow {
+  margin-bottom: 10px;
+}
+.action-reset-view > p:not(.eyebrow):not(.message) {
+  max-width: 315px;
+  margin: 0 auto 22px;
+  color: #718096;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.action-reset-view .auth-form {
+  width: 100%;
+  text-align: left;
+}
+.password-action-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 26px 8px;
+  text-align: center;
+}
+.password-action-state .loading-spinner {
+  margin-bottom: 20px;
+}
+.password-action-state h2 {
+  margin: 0 0 9px;
+  color: #172b42;
+  font-size: 21px;
+  font-weight: 800;
+}
+.password-action-state p {
+  margin: 0;
+  color: #718096;
+  font-size: 13px;
+  line-height: 1.55;
+}
