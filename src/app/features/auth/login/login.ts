@@ -51,17 +51,15 @@ export class Login implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
     try {
-      // Elimina l'account appena creato: il link di verifica associato non potrà più verificare un utente inesistente.
-      await this.authService.cancelUnverifiedRegistration();
       sessionStorage.removeItem('familyCalendar.pendingVerificationEmail');
       this.awaitingVerification = false;
       this.mode = 'register';
       this.password = '';
       this.confirmPassword = '';
-      this.successMessage = 'Registrazione annullata. Puoi registrarti nuovamente quando vuoi.';
+      this.successMessage = 'Hai chiuso la verifica. L’account resta non verificato e il link ricevuto rimane valido.';
     } catch (error) {
-      console.error('Errore durante l’annullamento della registrazione', error);
-      this.errorMessage = 'Non è stato possibile annullare la registrazione. Riprova.';
+      console.error('Errore durante la chiusura della verifica', error);
+      this.errorMessage = 'Non è stato possibile chiudere la schermata. Riprova.';
     } finally {
       this.isLoading = false;
     }
@@ -87,8 +85,10 @@ export class Login implements OnInit {
         }
       }
       this.awaitingVerification = false;
+      this.email = sessionStorage.getItem('familyCalendar.pendingVerificationEmail') || this.email;
       sessionStorage.removeItem('familyCalendar.pendingVerificationEmail');
-      this.successMessage = 'Email verificata. Per accedere automaticamente, apri il link nello stesso browser in cui hai creato l’account.';
+      this.mode = 'login';
+      this.successMessage = 'Email verificata. Ora accedi con la tua email e password.';
     } catch (error) {
       console.error('Errore durante il completamento della verifica email', error);
       this.errorMessage = 'Email verificata. Accedi per continuare.';
