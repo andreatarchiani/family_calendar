@@ -1,8 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { PwaInstallService } from './core/services/pwa-install.service';
-import { MatDialog } from '@angular/material/dialog';
-import { InstallDialog } from './shared/components/install-dialog/install-dialog';
 import { SwUpdate } from '@angular/service-worker';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -15,8 +13,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class App {
   private pwaInstall = inject(PwaInstallService);
 
-  private dialog = inject(MatDialog);
-
   private swUpdate = inject(SwUpdate);
 
   private snackBar = inject(MatSnackBar);
@@ -24,32 +20,14 @@ export class App {
   private updatePromptShown = false;
 
   constructor() {
-
-    console.log('App avviata');
-    this.setupAppUpdates();
-
-    window.addEventListener('beforeinstallprompt', (event: any) => {
-
-      console.log('EVENTO beforeinstallprompt');
-
+    // Conserva il prompt nativo finché l'utente non tocca l'icona Installa nell'header.
+    window.addEventListener('beforeinstallprompt', (event: Event) => {
       this.pwaInstall.registerPrompt(event);
-
-      if (this.pwaInstall.canShowInstallDialog()) {
-        const dialogRef = this.dialog.open(InstallDialog);
-
-        dialogRef.afterClosed().subscribe(async (wantInstall: boolean) => {
-          if (wantInstall) {
-            await this.pwaInstall.install();
-          } else {
-            this.pwaInstall.dismissForOneWeek();
-          }
-        });
-      }
-
-
     });
 
+    this.setupAppUpdates();
   }
+
   private setupAppUpdates(): void {
     if (!this.swUpdate.isEnabled) {
       return;
@@ -92,5 +70,4 @@ export class App {
     checkForUpdates();
     document.addEventListener('visibilitychange', checkForUpdates);
   }
-
 }
