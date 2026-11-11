@@ -1,69 +1,46 @@
-import { Injectable } from '@angular/core'; //così tratta la classe come services
+import { Injectable } from '@angular/core';
 
-@Injectable({ //singleton dice ad Angulardi creare un'unica istanza di questo servizio (disponibile in tutta l'applicazione)
+interface BeforeInstallPromptEvent extends Event {
+    prompt(): Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
+@Injectable({
     providedIn: 'root'
 })
-
 export class PwaInstallService {
-
-    private deferredPrompt: any;
+    private deferredPrompt: BeforeInstallPromptEvent | null = null;
 
     isAppInstalled(): boolean {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-        const isIosStandlone = (window.navigator as any).standalone === true;
-        return isStandalone || isIosStandlone;
+        const isIosStandalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+        return isStandalone || isIosStandalone;
     }
 
-    private readonly STORAGE_KEY = 'pwa-install-dismissed'; //valore salvato in localStorage
-
-    registerPrompt(event: any) {
-        event.preventDefault(); //previene il browser di mostrare il prompt di installazione
-        this.deferredPrompt = event; //salvo l'evento per poterlo usare in seguito
+    isIosDevice(): boolean {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent)
+            || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     }
 
-    canShowInstallDialog(): boolean {
-
-        if (this.isAppInstalled()) {
-            return false;
-        }
-
-        if (!this.deferredPrompt) {
-            return false;
-        }
-
-        const dismissed = Number(localStorage.getItem(this.STORAGE_KEY));
-
-        if (!dismissed) {
-            return true;
-        }
-
-        const oneWeek = 7 * 24 * 60 * 60 * 1000;
-
-        return Date.now() - dismissed > oneWeek;
+    registerPrompt(event: Event): void {
+        event.preventDefault();
+        this.deferredPrompt = event as BeforeInstallPromptEvent;
     }
 
+    canInstallNatively(): boolean {
+        return !!this.deferredPrompt && !this.isAppInstalled();
+    }
 
     async install(): Promise<boolean> {
-        if (!this.deferredPrompt) {
+        if (!this.deferredPrompt || this.isAppInstalled()) {
             return false;
         }
 
-        this.deferredPrompt.prompt();
-
-        const result = await this.deferredPrompt.userChoice;
-
+        const promptEvent = this.deferredPrompt;
         this.deferredPrompt = null;
 
+        await promptEvent.prompt();
+        const result = await promptEvent.userChoice;
         return result.outcome === 'accepted';
     }
-
-    dismissForOneWeek(): void {
-
-        localStorage.setItem(
-            this.STORAGE_KEY,
-            Date.now().toString()
-        );
-
-    }
-
 }
