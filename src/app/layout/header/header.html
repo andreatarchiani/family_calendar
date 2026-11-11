@@ -1,6 +1,13 @@
 <header class="app-header">
     <div class="title">
-        <mat-icon>calendar_month</mat-icon>
+        <button
+            type="button"
+            class="app-install-button"
+            (click)="installApp()"
+            matTooltip="Installa Family Calendar"
+            aria-label="Installa Family Calendar">
+            <mat-icon>calendar_month</mat-icon>
+        </button>
         <span>Family Calendar</span>
     </div>
 
@@ -22,6 +29,23 @@
     </div>
 </header>
 
+@if(showInstallHelp) {
+    <div class="dialog-backdrop" (click)="closeInstallHelp()">
+        <section
+            class="name-dialog install-help-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="install-help-title"
+            (click)="$event.stopPropagation()">
+            <div class="name-dialog-icon"><mat-icon>download</mat-icon></div>
+            <h2 id="install-help-title">{{ installHelpTitle }}</h2>
+            <p class="install-help-message">{{ installHelpMessage }}</p>
+            <div class="dialog-actions">
+                <button type="button" class="save-name-button" (click)="closeInstallHelp()">Ho capito</button>
+            </div>
+        </section>
+    </div>
+}
 
 @if(showNameEditor) {
     <div class="dialog-backdrop" (click)="cancelNameEditor()">
